@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عقاري ديزاين — مصمم منشورات العقارات</title>
+<style>
+  /* ===== خط ثمانية ===== */
+  @font-face{font-family:'ThmanyahSans'; src:url('fonts/thmanyahsans-Light.woff2') format('woff2'); font-weight:300; font-display:swap}
+  @font-face{font-family:'ThmanyahSans'; src:url('fonts/thmanyahsans-Regular.woff2') format('woff2'); font-weight:400; font-display:swap}
+  @font-face{font-family:'ThmanyahSans'; src:url('fonts/thmanyahsans-Medium.woff2') format('woff2'); font-weight:500; font-display:swap}
+  @font-face{font-family:'ThmanyahSans'; src:url('fonts/thmanyahsans-Bold.woff2') format('woff2'); font-weight:700; font-display:swap}
+  @font-face{font-family:'ThmanyahSans'; src:url('fonts/thmanyahsans-Black.woff2') format('woff2'); font-weight:900; font-display:swap}
+  @font-face{font-family:'ThmanyahSerif'; src:url('fonts/thmanyahserifdisplay-Regular.woff2') format('woff2'); font-weight:400; font-display:swap}
+  @font-face{font-family:'ThmanyahSerif'; src:url('fonts/thmanyahserifdisplay-Bold.woff2') format('woff2'); font-weight:700; font-display:swap}
+  @font-face{font-family:'ThmanyahSerif'; src:url('fonts/thmanyahserifdisplay-Black.woff2') format('woff2'); font-weight:900; font-display:swap}
+
+  :root{
+    --bg:#0f1219; --panel:#171c26; --panel2:#1e2430; --border:#2a3242;
+    --text:#e8ecf4; --muted:#8b94a7; --accent:#2dd4a7; --accent2:#1fb08a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'ThmanyahSans',sans-serif; background:var(--bg); color:var(--text);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:900; font-size:19px}
+  .brand .logo{
+    width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+    background:linear-gradient(135deg,var(--accent),#1a8f70); font-size:19px;
+  }
+  .brand small{display:block; font-weight:500; font-size:11px; color:var(--muted)}
+  .header-actions{display:flex; gap:10px}
+  .btn{
+    border:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:14px;
+    padding:10px 18px; border-radius:10px; transition:.15s;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#04241b}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-ghost{background:var(--panel2); color:var(--text); border:1px solid var(--border)}
+  .btn-ghost:hover{border-color:var(--accent)}
+
+  main{flex:1; display:flex; min-height:0}
+
+  /* ===== اللوحة الجانبية ===== */
+  aside{
+    width:350px; flex-shrink:0; background:var(--panel); border-inline-start:1px solid var(--border);
+    overflow-y:auto; padding:16px; order:2;
+  }
+  aside::-webkit-scrollbar{width:6px}
+  aside::-webkit-scrollbar-thumb{background:var(--border); border-radius:3px}
+  .section{margin-bottom:20px}
+  .section h3{
+    font-size:13px; font-weight:700; color:var(--muted); margin-bottom:10px;
+    display:flex; align-items:center; gap:7px; letter-spacing:.3px;
+  }
+  .section h3::after{content:''; flex:1; height:1px; background:var(--border)}
+
+  .tpl-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+  .tpl-btn{
+    background:var(--panel2); border:2px solid var(--border); border-radius:10px;
+    padding:10px 8px; cursor:pointer; color:var(--text); font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; gap:6px; transition:.15s;
+  }
+  .tpl-btn .swatch{width:100%; height:44px; border-radius:6px; position:relative; overflow:hidden}
+  .tpl-btn span{font-size:12px; font-weight:700}
+  .tpl-btn.active{border-color:var(--accent); background:#1c2b27}
+
+  .sw-modern{background:linear-gradient(to top,#000 0%,#0000 60%),linear-gradient(120deg,#5a768c,#8ba3b5)}
+  .sw-modern::after{content:''; position:absolute; bottom:6px; right:8px; left:8px; height:5px; border-radius:3px; background:#fff9}
+  .sw-luxury{background:#131315; border:1px solid #c9a22766}
+  .sw-luxury::after{content:''; position:absolute; inset:6px 8px 14px; border:1px solid #c9a227; background:linear-gradient(120deg,#3a3d44,#585d66)}
+  .sw-clean{background:#fff}
+  .sw-clean::before{content:''; position:absolute; top:0; right:0; left:0; height:55%; background:linear-gradient(120deg,#7d95a8,#a8bcc9)}
+  .sw-clean::after{content:''; position:absolute; bottom:5px; right:8px; width:40%; height:5px; border-radius:3px; background:#2dd4a7}
+  .sw-card{background:linear-gradient(120deg,#5a768c,#8ba3b5)}
+  .sw-card::after{content:''; position:absolute; bottom:5px; right:6px; left:6px; height:45%; border-radius:5px; background:#fff}
+
+  .size-row{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .size-btn{
+    background:var(--panel2); border:2px solid var(--border); border-radius:10px; padding:8px 4px;
+    cursor:pointer; color:var(--text); font-family:inherit; font-size:11.5px; font-weight:700;
+    display:flex; flex-direction:column; align-items:center; gap:4px; transition:.15s;
+  }
+  .size-btn.active{border-color:var(--accent); background:#1c2b27}
+  .size-btn i{display:block; border:2px solid currentColor; border-radius:3px; opacity:.7}
+  .i-sq{width:20px; height:20px} .i-p{width:17px; height:21px} .i-st{width:13px; height:23px}
+
+  .drop{
+    border:2px dashed var(--border); border-radius:12px; padding:18px 12px; text-align:center;
+    cursor:pointer; transition:.15s; background:var(--panel2);
+  }
+  .drop:hover,.drop.over{border-color:var(--accent); background:#1c2b27}
+  .drop .ic{font-size:26px}
+  .drop p{font-size:13px; font-weight:700; margin-top:5px}
+  .drop small{color:var(--muted); font-size:11px}
+
+  label.fld{display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 5px}
+  input[type=text], input[type=tel], select{
+    width:100%; background:var(--panel2); border:1px solid var(--border); border-radius:9px;
+    padding:9px 12px; color:var(--text); font-family:inherit; font-size:14px; outline:none; transition:.15s;
+  }
+  input:focus, select:focus{border-color:var(--accent)}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
+
+  input[type=range]{width:100%; accent-color:var(--accent)}
+
+  .colors{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .color-dot{
+    width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent;
+    outline:2px solid transparent; transition:.15s;
+  }
+  .color-dot.active{outline:2px solid #fff; outline-offset:2px}
+  input[type=color]{
+    width:30px; height:30px; border-radius:50%; border:2px dashed var(--muted); background:none;
+    cursor:pointer; padding:0;
+  }
+  input[type=color]::-webkit-color-swatch-wrapper{padding:2px}
+  input[type=color]::-webkit-color-swatch{border-radius:50%; border:none}
+
+  /* ===== منطقة المعاينة ===== */
+  .stage{
+    flex:1; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(circle at 30% 20%, #1a2030 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, #16211e 0%, transparent 50%), var(--bg);
+    min-width:0; order:1; position:relative;
+  }
+  .canvas-wrap{
+    position:relative; box-shadow:0 25px 70px #0009; border-radius:8px; overflow:hidden;
+    max-width:100%; max-height:100%;
+  }
+  canvas{display:block; max-width:100%; max-height:calc(100vh - 150px); cursor:grab}
+  canvas:active{cursor:grabbing}
+  .hint{
+    position:absolute; bottom:8px; inset-inline:0; text-align:center; font-size:12px;
+    color:var(--muted); pointer-events:none;
+  }
+
+  @media (max-width:900px){
+    body{overflow:auto}
+    main{flex-direction:column}
+    aside{width:100%; order:1; overflow:visible}
+    .stage{order:2; padding:14px}
+    canvas{max-height:70vh}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">🏠</div>
+    <div>عقاري ديزاين<small>مصمم منشورات إنستقرام للوسطاء العقاريين — بخط ثمانية</small></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" id="btnJpg">تحميل JPG</button>
+    <button class="btn btn-primary" id="btnPng">⬇ تحميل الصورة PNG</button>
+  </div>
+</header>
+
+<main>
+  <aside>
+    <div class="section">
+      <h3>🎨 القالب</h3>
+      <div class="tpl-grid" id="tplGrid">
+        <button class="tpl-btn active" data-tpl="modern"><div class="swatch sw-modern"></div><span>عصري</span></button>
+        <button class="tpl-btn" data-tpl="luxury"><div class="swatch sw-luxury"></div><span>فاخر</span></button>
+        <button class="tpl-btn" data-tpl="clean"><div class="swatch sw-clean"></div><span>نظيف</span></button>
+        <button class="tpl-btn" data-tpl="card"><div class="swatch sw-card"></div><span>بطاقة</span></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📐 المقاس</h3>
+      <div class="size-row" id="sizeRow">
+        <button class="size-btn active" data-w="1080" data-h="1080"><i class="i-sq"></i>مربع<small>1080×1080</small></button>
+        <button class="size-btn" data-w="1080" data-h="1350"><i class="i-p"></i>عمودي<small>1080×1350</small></button>
+        <button class="size-btn" data-w="1080" data-h="1920"><i class="i-st"></i>ستوري<small>1080×1920</small></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>🖼️ صورة العقار</h3>
+      <div class="drop" id="drop">
+        <div class="ic">📷</div>
+        <p>اضغط أو اسحب الصورة هنا</p>
+        <small>JPG / PNG — صورة الفيلا أو العقار</small>
+      </div>
+      <input type="file" id="fileImg" accept="image/*" hidden>
+      <label class="fld">تكبير الصورة <span style="color:var(--muted);font-weight:400">(اسحب الصورة في المعاينة لتحريكها)</span></label>
+      <input type="range" id="zoom" min="100" max="300" value="100">
+    </div>
+
+    <div class="section">
+      <h3>🏷️ بيانات العقار</h3>
+      <div class="row2">
+        <div>
+          <label class="fld">الحالة</label>
+          <select id="badge">
+            <option>للبيع</option>
+            <option>للإيجار</option>
+            <option>للاستثمار</option>
+            <option>تم البيع</option>
+            <option>عرض خاص</option>
+          </select>
+        </div>
+        <div>
+          <label class="fld">نوع العقار</label>
+          <select id="ptype">
+            <option>فيلا</option>
+            <option>شقة</option>
+            <option>دوبلكس</option>
+            <option>أرض</option>
+            <option>عمارة</option>
+            <option>استراحة</option>
+            <option>شاليه</option>
+            <option>مزرعة</option>
+            <option>محل تجاري</option>
+            <option>مكتب</option>
+          </select>
+        </div>
+      </div>
+      <label class="fld">عنوان الإعلان</label>
+      <input type="text" id="title" value="فيلا فاخرة بتشطيب راقي" maxlength="40">
+      <label class="fld">الموقع / الحي</label>
+      <input type="text" id="loc" value="الرياض — حي النرجس" maxlength="40">
+      <div class="row2">
+        <div>
+          <label class="fld">السعر (اتركه فارغاً = عند الطلب)</label>
+          <input type="text" id="price" value="2500000" inputmode="numeric">
+        </div>
+        <div>
+          <label class="fld">العملة</label>
+          <select id="currency">
+            <option>ريال</option>
+            <option>درهم</option>
+            <option>دينار</option>
+            <option>ج.م</option>
+            <option>$</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>🛏️ المواصفات</h3>
+      <div class="row3">
+        <div><label class="fld">غرف النوم</label><input type="text" id="beds" value="6" inputmode="numeric"></div>
+        <div><label class="fld">دورات المياه</label><input type="text" id="baths" value="4" inputmode="numeric"></div>
+        <div><label class="fld">المساحة م²</label><input type="text" id="area" value="450" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>👤 بيانات الوسيط</h3>
+      <label class="fld">الاسم / المكتب العقاري</label>
+      <input type="text" id="agent" value="مكتب النخبة العقاري" maxlength="35">
+      <label class="fld">رقم الجوال</label>
+      <input type="tel" id="phone" value="0501234567" maxlength="20">
+      <label class="fld">الشعار (اختياري)</label>
+      <button class="btn btn-ghost" style="width:100%" id="btnLogo">⬆ رفع الشعار</button>
+      <input type="file" id="fileLogo" accept="image/*" hidden>
+    </div>
+
+    <div class="section">
+      <h3>🎨 اللون الأساسي</h3>
+      <div class="colors" id="colors">
+        <div class="color-dot active" style="background:#c9a227" data-c="#c9a227"></div>
+        <div class="color-dot" style="background:#2dd4a7" data-c="#2dd4a7"></div>
+        <div class="color-dot" style="background:#2f80ed" data-c="#2f80ed"></div>
+        <div class="color-dot" style="background:#e74c3c" data-c="#e74c3c"></div>
+        <div class="color-dot" style="background:#8e44ad" data-c="#8e44ad"></div>
+        <div class="color-dot" style="background:#16324f" data-c="#16324f"></div>
+        <input type="color" id="customColor" value="#c9a227" title="لون مخصص">
+      </div>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div class="canvas-wrap">
+      <canvas id="cv" width="1080" height="1080"></canvas>
+    </div>
+    <div class="hint">المعاينة مباشرة — الصورة النهائية تُصدَّر بدقة كاملة</div>
+  </section>
+</main>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+
+const SANS = 'ThmanyahSans';
+const SERIF = 'ThmanyahSerif';
+
+const state = {
+  tpl: 'modern',
+  W: 1080, H: 1080,
+  img: null, logo: null,
+  zoom: 1, offX: 0, offY: 0,
+  color: '#c9a227',
+};
+
+/* ---------- أدوات مساعدة ---------- */
+function rr(c, x, y, w, h, r){
+  r = Math.min(r, w/2, h/2);
+  c.beginPath();
+  c.moveTo(x+r, y);
+  c.arcTo(x+w, y, x+w, y+h, r);
+  c.arcTo(x+w, y+h, x, y+h, r);
+  c.arcTo(x, y+h, x, y, r);
+  c.arcTo(x, y, x+w, y, r);
+  c.closePath();
+}
+function fmtPrice(v){
+  const n = parseFloat(String(v).replace(/[^\d.]/g,''));
+  if (!v || isNaN(n)) return null;
+  return n.toLocaleString('en-US');
+}
+function hexToRgb(h){
+  const m = h.replace('#','');
+  return [parseInt(m.substr(0,2),16), parseInt(m.substr(2,2),16), parseInt(m.substr(4,2),16)];
+}
+function darken(h, f){
+  const [r,g,b] = hexToRgb(h);
+  return `rgb(${r*f|0},${g*f|0},${b*f|0})`;
+}
+function isLight(h){
+  const [r,g,b] = hexToRgb(h);
+  return (r*0.299 + g*0.587 + b*0.114) > 150;
+}
+// نص متوافق مع أقصى عرض: يصغّر الخط تلقائياً
+function fitText(c, text, maxW, baseSize, weight, family){
+  let size = baseSize;
+  do {
+    c.font = `${weight} ${size}px ${family}`;
+    if (c.measureText(text).width <= maxW) break;
+    size -= 2;
+  } while (size > 14);
+  return size;
+}
+
+/* رسم صورة العقار بأسلوب cover مع تكبير وإزاحة المستخدم */
+function drawCover(c, x, y, w, h){
+  c.save();
+  rr(c, x, y, w, h, 0); c.clip();
+  if (!state.img){
+    const g = c.createLinearGradient(x, y, x+w, y+h);
+    g.addColorStop(0, '#3d4c5c'); g.addColorStop(1, '#5d7386');
+    c.fillStyle = g; c.fillRect(x, y, w, h);
+    c.fillStyle = '#ffffff55';
+    c.font = `900 ${w*0.14}px ${SANS}`;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('🏠', x+w/2, y+h/2 - w*0.05);
+    c.font = `700 ${w*0.035}px ${SANS}`;
+    c.fillText('ارفع صورة العقار من القائمة الجانبية', x+w/2, y+h/2 + w*0.07);
+    c.restore();
+    return;
+  }
+  const img = state.img;
+  const base = Math.max(w/img.width, h/img.height) * state.zoom;
+  const dw = img.width*base, dh = img.height*base;
+  let dx = x + (w-dw)/2 + state.offX;
+  let dy = y + (h-dh)/2 + state.offY;
+  dx = Math.min(x, Math.max(x+w-dw, dx));
+  dy = Math.min(y, Math.max(y+h-dh, dy));
+  c.drawImage(img, dx, dy, dw, dh);
+  c.restore();
+}
+
+function drawLogo(c, x, y, size){
+  if (state.logo){
+    const img = state.logo;
+    const r = Math.min(size/img.width, size/img.height);
+    const w = img.width*r, h = img.height*r;
+    c.save();
+    c.shadowColor = '#0006'; c.shadowBlur = 10;
+    c.drawImage(img, x + (size-w)/2, y + (size-h)/2, w, h);
+    c.restore();
+  }
+}
+
+function featureItems(d){
+  const items = [];
+  if (d.beds)  items.push({ic:'🛏️', v:d.beds,  l:'غرف نوم'});
+  if (d.baths) items.push({ic:'🛁', v:d.baths, l:'دورات مياه'});
+  if (d.area)  items.push({ic:'📐', v:d.area + ' م²', l:'المساحة'});
+  return items;
+}
+
+function getData(){
+  return {
+    badge: $('badge').value,
+    ptype: $('ptype').value,
+    title: $('title').value.trim(),
+    loc: $('loc').value.trim(),
+    price: fmtPrice($('price').value),
+    currency: $('currency').value,
+    beds: $('beds').value.trim(),
+    baths: $('baths').value.trim(),
+    area: $('area').value.trim(),
+    agent: $('agent').value.trim(),
+    phone: $('phone').value.trim(),
+  };
+}
+
+/* ============ القالب 1: عصري ============ */
+function tplModern(c, W, H, d){
+  const s = W/1080;
+  drawCover(c, 0, 0, W, H);
+
+  // تظليل سفلي
+  const g = c.createLinearGradient(0, H*0.38, 0, H);
+  g.addColorStop(0, 'rgba(8,10,14,0)');
+  g.addColorStop(0.5, 'rgba(8,10,14,0.72)');
+  g.addColorStop(1, 'rgba(8,10,14,0.95)');
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+
+  c.direction = 'rtl'; c.textBaseline = 'middle';
+
+  // شارة الحالة أعلى اليمين
+  c.font = `700 ${34*s}px ${SANS}`;
+  const bw = c.measureText(d.badge).width + 56*s;
+  rr(c, W - bw - 44*s, 44*s, bw, 62*s, 31*s);
+  c.fillStyle = state.color; c.fill();
+  c.fillStyle = isLight(state.color) ? '#111' : '#fff';
+  c.textAlign = 'center';
+  c.fillText(d.badge, W - 44*s - bw/2, 44*s + 33*s);
+
+  drawLogo(c, 44*s, 40*s, 130*s);
+
+  // من الأسفل للأعلى
+  let y = H - 64*s;
+
+  // شريط الوسيط
+  c.textAlign = 'right';
+  c.fillStyle = '#fff';
+  c.font = `700 ${30*s}px ${SANS}`;
+  if (d.agent) c.fillText(d.agent, W - 56*s, y);
+  if (d.phone){
+    c.textAlign = 'left';
+    c.font = `700 ${32*s}px ${SANS}`;
+    c.fillText('📞 ' + d.phone, 56*s, y);
+  }
+  y -= 46*s;
+  c.strokeStyle = 'rgba(255,255,255,0.25)'; c.lineWidth = 2*s;
+  c.beginPath(); c.moveTo(56*s, y); c.lineTo(W-56*s, y); c.stroke();
+  y -= 60*s;
+
+  // المواصفات
+  const items = featureItems(d);
+  if (items.length){
+    const gap = 26*s, chipH = 78*s;
+    c.font = `700 ${30*s}px ${SANS}`;
+    const widths = items.map(it => c.measureText(it.ic + '  ' + it.v + ' ' + it.l).width + 52*s);
+    const total = widths.reduce((a,b)=>a+b,0) + gap*(items.length-1);
+    let x = W - (W-total)/2;   // نبدأ من اليمين
+    items.forEach((it, i) => {
+      const w = widths[i];
+      rr(c, x - w, y - chipH/2, w, chipH, 16*s);
+      c.fillStyle = 'rgba(255,255,255,0.14)'; c.fill();
+      c.fillStyle = '#fff'; c.textAlign = 'center';
+      c.fillText(it.ic + '  ' + it.v + ' ' + it.l, x - w/2, y + 2*s);
+      x -= w + gap;
+    });
+    y -= chipH/2 + 54*s;
+  }
+
+  // السعر
+  c.textAlign = 'right';
+  const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
+  const ps = fitText(c, priceTxt, W - 112*s, 84*s, 900, SERIF);
+  c.font = `900 ${ps}px ${SERIF}`;
+  c.fillStyle = state.color;
+  c.fillText(priceTxt, W - 56*s, y);
+  y -= ps*0.85 + 26*s;
+
+  // الموقع
+  if (d.loc){
+    c.font = `500 ${34*s}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.85)';
+    c.fillText('📍 ' + d.loc, W - 56*s, y);
+    y -= 60*s;
+  }
+
+  // العنوان
+  if (d.title){
+    const ts = fitText(c, d.title, W - 112*s, 66*s, 700, SANS);
+    c.font = `700 ${ts}px ${SANS}`;
+    c.fillStyle = '#fff';
+    c.fillText(d.title, W - 56*s, y);
+    y -= ts + 18*s;
+  }
+
+  // نوع العقار
+  c.font = `700 ${28*s}px ${SANS}`;
+  const tw = c.measureText(d.ptype).width + 44*s;
+  rr(c, W - 56*s - tw, y - 25*s, tw, 50*s, 12*s);
+  c.fillStyle = 'rgba(255,255,255,0.16)'; c.fill();
+  c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 1.5*s; c.stroke();
+  c.fillStyle = '#fff'; c.textAlign = 'center';
+  c.fillText(d.ptype, W - 56*s - tw/2, y + 2*s);
+}
+
+/* ============ القالب 2: فاخر ============ */
+function tplLuxury(c, W, H, d){
+  const s = W/1080;
+  const gold = state.color;
+  c.fillStyle = '#0e0e10'; c.fillRect(0, 0, W, H);
+
+  // نقش خفيف
+  c.strokeStyle = 'rgba(255,255,255,0.03)'; c.lineWidth = 1;
+  for (let i = 0; i < W+H; i += 46*s){
+    c.beginPath(); c.moveTo(i, 0); c.lineTo(0, i); c.stroke();
+  }
+
+  const m = 64*s;
+  const imgH = H * (H > W ? 0.52 : 0.50);
+
+  // إطار ذهبي
+  c.strokeStyle = gold; c.lineWidth = 3*s;
+  c.strokeRect(m - 14*s, m - 14*s, W - 2*m + 28*s, imgH + 28*s);
+  drawCover(c, m, m, W - 2*m, imgH);
+
+  // شارة الحالة فوق الصورة
+  c.direction = 'rtl'; c.textBaseline = 'middle';
+  c.font = `700 ${30*s}px ${SANS}`;
+  const bw = c.measureText(d.badge).width + 60*s;
+  rr(c, (W-bw)/2, m - 40*s, bw, 58*s, 8*s);
+  c.fillStyle = gold; c.fill();
+  c.fillStyle = isLight(gold) ? '#111' : '#fff';
+  c.textAlign = 'center';
+  c.fillText(d.badge, W/2, m - 40*s + 31*s);
+
+  drawLogo(c, W - m - 120*s, m + 18*s, 110*s);
+
+  // النصوص أسفل الصورة — توزيع متكيّف مع المساحة حتى لا تتداخل العناصر
+  const items = featureItems(d);
+  const agentY = H - 50*s;                 // سطر الوسيط ثابت أسفل التصميم
+  const yStart = m + imgH + 56*s;
+  const yEnd = agentY - 64*s;              // حد أدنى فاصل عن سطر الوسيط
+
+  const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
+  const ps0 = fitText(c, priceTxt, W - 2*m, 76*s, 900, SERIF);
+  const ts0 = d.title ? fitText(c, d.title, W - 2*m, 60*s, 700, SERIF) : 0;
+
+  // الارتفاع المطلوب بالكامل — إن تجاوز المساحة نضغط التباعد بنسبة f
+  let needed = 40*s + 62*s;
+  if (d.title) needed += ts0*0.7 + 34*s;
+  if (d.loc)   needed += 56*s;
+  needed += 64*s;
+  needed += ps0*0.8;
+  if (items.length) needed += 78*s;
+  const f = Math.min(1, (yEnd - yStart) / needed);
+
+  let y = yStart + 40*s*f;
+  c.textAlign = 'center';
+
+  // نوع العقار
+  c.font = `700 ${26*s}px ${SANS}`;
+  c.fillStyle = gold;
+  c.fillText('✦  ' + d.ptype + '  ✦', W/2, y);
+  y += 62*s*f;
+
+  if (d.title){
+    const ts = ts0 * Math.max(f, 0.85);
+    c.font = `700 ${ts}px ${SERIF}`;
+    c.fillStyle = '#fff';
+    c.fillText(d.title, W/2, y);
+    y += (ts0*0.7 + 34*s)*f;
+  }
+  if (d.loc){
+    c.font = `500 ${30*s * Math.max(f, 0.85)}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.65)';
+    c.fillText('📍 ' + d.loc, W/2, y);
+    y += 56*s*f;
+  }
+
+  // فاصل ذهبي
+  c.strokeStyle = gold; c.lineWidth = 2*s;
+  c.beginPath(); c.moveTo(W/2 - 90*s, y); c.lineTo(W/2 + 90*s, y); c.stroke();
+  c.fillStyle = gold;
+  c.beginPath(); c.arc(W/2, y, 5*s, 0, 7); c.fill();
+  y += 64*s*f;
+
+  // السعر
+  const ps = ps0 * Math.max(f, 0.8);
+  c.font = `900 ${ps}px ${SERIF}`;
+  c.fillStyle = gold;
+  c.fillText(priceTxt, W/2, y);
+  y += ps*0.75*f + (items.length ? 44*s*f : 0);
+
+  // المواصفات
+  if (items.length && y < yEnd + 26*s){
+    const txts = items.map(it => it.ic + ' ' + it.v + ' ' + it.l);
+    const line = txts.join('   |   ');
+    const ls = fitText(c, line, W - 2*m, 28*s, 700, SANS);
+    c.font = `700 ${ls}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.85)';
+    c.fillText(line, W/2, y);
+  }
+
+  // شريط الوسيط أسفل
+  c.font = `700 ${27*s}px ${SANS}`;
+  c.fillStyle = 'rgba(255,255,255,0.75)';
+  const parts = [];
+  if (d.agent) parts.push(d.agent);
+  if (d.phone) parts.push('📞 ' + d.phone);
+  if (parts.length) c.fillText(parts.join('   •   '), W/2, agentY);
+}
+
+/* ============ القالب 3: نظيف ============ */
+function tplClean(c, W, H, d){
+  const s = W/1080;
+  c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H);
+
+  const imgH = H * (H > W ? 0.55 : 0.60);
+  drawCover(c, 0, 0, W, imgH);
+
+  c.direction = 'rtl'; c.textBaseline = 'middle';
+
+  drawLogo(c, 44*s, 40*s, 120*s);
+
+  // شارة متداخلة على حد الصورة
+  c.font = `700 ${32*s}px ${SANS}`;
+  const bw = c.measureText(d.badge).width + 60*s;
+  rr(c, W - bw - 56*s, imgH - 34*s, bw, 68*s, 34*s);
+  c.save();
+  c.shadowColor = '#0004'; c.shadowBlur = 18*s; c.shadowOffsetY = 6*s;
+  c.fillStyle = state.color; c.fill();
+  c.restore();
+  c.fillStyle = isLight(state.color) ? '#111' : '#fff';
+  c.textAlign = 'center';
+  c.fillText(d.badge, W - 56*s - bw/2, imgH + 1*s);
+
+  // خط جانبي ملوّن
+  c.fillStyle = state.color;
+  c.fillRect(W - 12*s, imgH, 12*s, H - imgH);
+
+  const barH = 104*s;
+  let y = imgH + 88*s;
+  c.textAlign = 'right';
+
+  // نوع العقار
+  c.font = `700 ${28*s}px ${SANS}`;
+  c.fillStyle = state.color;
+  c.fillText(d.ptype, W - 56*s, y - 26*s);
+
+  // العنوان
+  if (d.title){
+    const ts = fitText(c, d.title, W - 130*s, 58*s, 700, SANS);
+    c.font = `700 ${ts}px ${SANS}`;
+    c.fillStyle = '#141a22';
+    c.fillText(d.title, W - 56*s, y + 30*s);
+    y += ts + 30*s;
+  }
+  if (d.loc){
+    c.font = `500 ${30*s}px ${SANS}`;
+    c.fillStyle = '#7a8494';
+    c.fillText('📍 ' + d.loc, W - 56*s, y + 26*s);
+    y += 66*s;
+  }
+
+  // السعر يسار + المواصفات يمين
+  const rowY = Math.min(y + 60*s, H - barH - 70*s);
+  const items = featureItems(d);
+  if (items.length){
+    let x = W - 56*s;
+    items.forEach(it => {
+      const t = it.ic + ' ' + it.v;
+      const l = it.l;
+      c.fillStyle = '#141a22'; c.textAlign = 'right';
+      c.font = `700 ${30*s}px ${SANS}`;
+      c.fillText(t, x, rowY - 16*s);
+      c.fillStyle = '#98a1b0';
+      c.font = `500 ${22*s}px ${SANS}`;
+      c.fillText(l, x, rowY + 22*s);
+      x -= Math.max(c.measureText(t).width, c.measureText(l).width) + 96*s;
+    });
+  }
+  const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
+  c.textAlign = 'left';
+  const ps = fitText(c, priceTxt, W*0.42, 54*s, 900, SERIF);
+  c.font = `900 ${ps}px ${SERIF}`;
+  c.fillStyle = state.color;
+  c.fillText(priceTxt, 56*s, rowY);
+
+  // شريط الوسيط
+  c.fillStyle = darken(state.color, isLight(state.color) ? 0.55 : 0.8);
+  c.fillRect(0, H - barH, W, barH);
+  c.fillStyle = '#fff';
+  c.textAlign = 'right';
+  c.font = `700 ${30*s}px ${SANS}`;
+  if (d.agent) c.fillText(d.agent, W - 56*s, H - barH/2);
+  if (d.phone){
+    c.textAlign = 'left';
+    c.font = `700 ${32*s}px ${SANS}`;
+    c.fillText('📞 ' + d.phone, 56*s, H - barH/2);
+  }
+}
+
+/* ============ القالب 4: بطاقة ============ */
+function tplCard(c, W, H, d){
+  const s = W/1080;
+  drawCover(c, 0, 0, W, H);
+
+  // تظليل خفيف عام
+  c.fillStyle = 'rgba(0,0,0,0.12)'; c.fillRect(0, 0, W, H);
+
+  c.direction = 'rtl'; c.textBaseline = 'middle';
+
+  drawLogo(c, 44*s, 40*s, 120*s);
+
+  // شارة أعلى اليمين
+  c.font = `700 ${32*s}px ${SANS}`;
+  const bw = c.measureText(d.badge).width + 56*s;
+  rr(c, W - bw - 44*s, 44*s, bw, 60*s, 14*s);
+  c.fillStyle = state.color; c.fill();
+  c.fillStyle = isLight(state.color) ? '#111' : '#fff';
+  c.textAlign = 'center';
+  c.fillText(d.badge, W - 44*s - bw/2, 44*s + 32*s);
+
+  // البطاقة
+  const items = featureItems(d);
+  const cm = 48*s;
+  const pad = 44*s;
+  let ch = 100*s;
+  if (d.title) ch += 66*s;
+  if (d.loc)   ch += 54*s;
+  if (items.length) ch += 100*s;
+  ch += 92*s;
+  const cy = H - cm - ch;
+
+  c.save();
+  c.shadowColor = '#0007'; c.shadowBlur = 34*s; c.shadowOffsetY = 12*s;
+  rr(c, cm, cy, W - 2*cm, ch, 28*s);
+  c.fillStyle = '#ffffff'; c.fill();
+  c.restore();
+
+  let y = cy + pad + 12*s;
+  const xr = W - cm - pad, xl = cm + pad;
+
+  // نوع العقار + السعر
+  c.textAlign = 'right';
+  c.font = `700 ${27*s}px ${SANS}`;
+  c.fillStyle = state.color;
+  c.fillText('● ' + d.ptype, xr, y);
+  const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
+  c.textAlign = 'left';
+  const ps = fitText(c, priceTxt, W*0.4, 46*s, 900, SERIF);
+  c.font = `900 ${ps}px ${SERIF}`;
+  c.fillStyle = darken(state.color, isLight(state.color) ? 0.6 : 1);
+  c.fillText(priceTxt, xl, y);
+  y += 62*s;
+
+  if (d.title){
+    c.textAlign = 'right';
+    const ts = fitText(c, d.title, W - 2*cm - 2*pad, 48*s, 700, SANS);
+    c.font = `700 ${ts}px ${SANS}`;
+    c.fillStyle = '#141a22';
+    c.fillText(d.title, xr, y);
+    y += 64*s;
+  }
+  if (d.loc){
+    c.textAlign = 'right';
+    c.font = `500 ${28*s}px ${SANS}`;
+    c.fillStyle = '#7a8494';
+    c.fillText('📍 ' + d.loc, xr, y);
+    y += 58*s;
+  }
+
+  if (items.length){
+    y += 8*s;
+    const availW = W - 2*cm - 2*pad;
+    const cellW = availW / items.length;
+    items.forEach((it, i) => {
+      const cx = xr - cellW*i - cellW/2;
+      c.textAlign = 'center';
+      c.font = `700 ${30*s}px ${SANS}`;
+      c.fillStyle = '#141a22';
+      c.fillText(it.ic + ' ' + it.v, cx, y);
+      c.font = `500 ${21*s}px ${SANS}`;
+      c.fillStyle = '#98a1b0';
+      c.fillText(it.l, cx, y + 36*s);
+      if (i < items.length - 1){
+        c.strokeStyle = '#e3e7ee'; c.lineWidth = 2*s;
+        c.beginPath();
+        c.moveTo(xr - cellW*(i+1), y - 18*s);
+        c.lineTo(xr - cellW*(i+1), y + 42*s);
+        c.stroke();
+      }
+    });
+    y += 92*s;
+  }
+
+  // شريط الوسيط داخل البطاقة
+  const abY = cy + ch - 76*s;
+  rr(c, cm + 20*s, abY, W - 2*cm - 40*s, 60*s, 16*s);
+  c.fillStyle = state.color; c.fill();
+  const onColor = isLight(state.color) ? '#111' : '#fff';
+  c.fillStyle = onColor;
+  c.textAlign = 'right';
+  c.font = `700 ${26*s}px ${SANS}`;
+  if (d.agent) c.fillText(d.agent, xr - 6*s, abY + 32*s);
+  if (d.phone){
+    c.textAlign = 'left';
+    c.font = `700 ${27*s}px ${SANS}`;
+    c.fillText('📞 ' + d.phone, xl + 6*s, abY + 32*s);
+  }
+}
+
+/* ---------- الرسم ---------- */
+const templates = { modern: tplModern, luxury: tplLuxury, clean: tplClean, card: tplCard };
+
+function render(){
+  cv.width = state.W; cv.height = state.H;
+  ctx.clearRect(0, 0, state.W, state.H);
+  templates[state.tpl](ctx, state.W, state.H, getData());
+}
+
+/* ---------- الأحداث ---------- */
+document.querySelectorAll('#tplGrid .tpl-btn').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tplGrid .tpl-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  state.tpl = b.dataset.tpl;
+  render();
+});
+
+document.querySelectorAll('#sizeRow .size-btn').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#sizeRow .size-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  state.W = +b.dataset.w; state.H = +b.dataset.h;
+  state.offX = state.offY = 0;
+  render();
+});
+
+['badge','ptype','title','loc','price','currency','beds','baths','area','agent','phone']
+  .forEach(id => $(id).addEventListener('input', render));
+
+$('zoom').addEventListener('input', e => {
+  state.zoom = e.target.value / 100;
+  render();
+});
+
+document.querySelectorAll('.color-dot').forEach(dot => dot.onclick = () => {
+  document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('active'));
+  dot.classList.add('active');
+  state.color = dot.dataset.c;
+  render();
+});
+$('customColor').addEventListener('input', e => {
+  document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('active'));
+  state.color = e.target.value;
+  render();
+});
+
+/* رفع صورة العقار */
+const drop = $('drop');
+drop.onclick = () => $('fileImg').click();
+$('fileImg').onchange = e => loadImage(e.target.files[0], 'img');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('over');
+  loadImage(e.dataTransfer.files[0], 'img');
+});
+const stage = document.querySelector('.stage');
+stage.addEventListener('dragover', e => e.preventDefault());
+stage.addEventListener('drop', e => {
+  e.preventDefault();
+  loadImage(e.dataTransfer.files[0], 'img');
+});
+
+$('btnLogo').onclick = () => $('fileLogo').click();
+$('fileLogo').onchange = e => loadImage(e.target.files[0], 'logo');
+
+function loadImage(file, key){
+  if (!file || !file.type.startsWith('image/')) return;
+  const img = new Image();
+  img.onload = () => {
+    state[key] = img;
+    if (key === 'img'){ state.zoom = 1; state.offX = state.offY = 0; $('zoom').value = 100; }
+    if (key === 'logo'){ $('btnLogo').textContent = '✔ تم رفع الشعار — اضغط للتغيير'; }
+    render();
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+/* تحريك الصورة بالسحب داخل المعاينة */
+let dragging = false, lastX = 0, lastY = 0;
+cv.addEventListener('pointerdown', e => {
+  if (!state.img) return;
+  dragging = true; lastX = e.clientX; lastY = e.clientY;
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const k = cv.width / cv.getBoundingClientRect().width;
+  state.offX += (e.clientX - lastX) * k;
+  state.offY += (e.clientY - lastY) * k;
+  lastX = e.clientX; lastY = e.clientY;
+  render();
+});
+cv.addEventListener('pointerup', () => dragging = false);
+
+/* التحميل */
+function download(type){
+  render();
+  const title = $('title').value.trim() || 'اعلان-عقاري';
+  const a = document.createElement('a');
+  a.download = title.replace(/\s+/g, '-') + (type === 'jpg' ? '.jpg' : '.png');
+  a.href = type === 'jpg' ? cv.toDataURL('image/jpeg', 0.92) : cv.toDataURL('image/png');
+  a.click();
+}
+$('btnPng').onclick = () => download('png');
+$('btnJpg').onclick = () => download('jpg');
+
+/* أول رسم — بعد تحميل خط ثمانية */
+render();
+if (document.fonts){
+  Promise.all([
+    document.fonts.load(`500 30px ${SANS}`),
+    document.fonts.load(`700 30px ${SANS}`),
+    document.fonts.load(`900 30px ${SANS}`),
+    document.fonts.load(`700 30px ${SERIF}`),
+    document.fonts.load(`900 30px ${SERIF}`),
+  ]).then(render).catch(()=>{});
+  document.fonts.ready.then(render);
+  setTimeout(render, 1000);
+}
+</script>
+</body>
+</html>
