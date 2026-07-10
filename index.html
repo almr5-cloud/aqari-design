@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>عقاري ديزاين — مصمم منشورات العقارات</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   /* ===== خط ثمانية ===== */
   @font-face{font-family:'ThmanyahSans'; src:url('fonts/thmanyahsans-Light.woff2') format('woff2'); font-weight:300; font-display:swap}
@@ -102,7 +103,7 @@
   .drop small{color:var(--muted); font-size:11px}
 
   label.fld{display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 5px}
-  input[type=text], input[type=tel], select{
+  input[type=text], input[type=tel], input[type=password], select{
     width:100%; background:var(--panel2); border:1px solid var(--border); border-radius:9px;
     padding:9px 12px; color:var(--text); font-family:inherit; font-size:14px; outline:none; transition:.15s;
   }
@@ -144,6 +145,26 @@
     color:var(--muted); pointer-events:none;
   }
 
+  /* ===== نافذة الدخول والحساب ===== */
+  .modal-back{position:fixed; inset:0; background:#000c; display:none; align-items:center; justify-content:center; z-index:50}
+  .modal-back.open{display:flex}
+  .modal{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px; width:340px; max-width:92vw}
+  .modal h2{font-size:18px; margin-bottom:14px}
+  .modal .tabs{display:flex; gap:8px; margin-bottom:6px}
+  .modal .tabs button{flex:1}
+  .modal .msg{font-size:12.5px; margin-top:10px; color:var(--muted); min-height:18px}
+  .modal .msg.err{color:#e74c3c}
+  .modal .msg.ok{color:var(--accent)}
+  .userbox{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted)}
+  .btn-sm{padding:7px 12px; font-size:12.5px}
+  .design-item{
+    display:flex; align-items:center; gap:6px; background:var(--panel2);
+    border:1px solid var(--border); border-radius:9px; padding:7px 10px; margin-top:6px; font-size:13px;
+  }
+  .design-item span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .design-item button{background:none; border:none; cursor:pointer; font-size:14px; color:var(--muted); font-family:inherit}
+  .design-item button:hover{color:var(--text)}
+
   @media (max-width:900px){
     body{overflow:auto}
     main{flex-direction:column}
@@ -161,6 +182,7 @@
     <div>عقاري ديزاين<small>مصمم منشورات إنستقرام للوسطاء العقاريين — بخط ثمانية</small></div>
   </div>
   <div class="header-actions">
+    <span id="authBox" class="userbox"></span>
     <button class="btn btn-ghost" id="btnJpg">تحميل JPG</button>
     <button class="btn btn-primary" id="btnPng">⬇ تحميل الصورة PNG</button>
   </div>
@@ -168,6 +190,26 @@
 
 <main>
   <aside>
+    <div class="section">
+      <h3>☁️ حسابي وتصاميمي</h3>
+      <div id="cloudOff" style="display:none">
+        <p style="font-size:12.5px;color:var(--muted)">الحفظ السحابي غير مفعّل بعد — املأ SUPABASE_URL و SUPABASE_ANON_KEY في أعلى كود الصفحة.</p>
+      </div>
+      <div id="cloudOut" style="display:none">
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px">سجّل الدخول لحفظ تصاميمك واسترجاعها من أي جهاز</p>
+        <button class="btn btn-primary" style="width:100%" id="btnOpenAuth">تسجيل الدخول / إنشاء حساب</button>
+      </div>
+      <div id="cloudIn" style="display:none">
+        <label class="fld">اسم التصميم</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="designName" placeholder="فيلا النرجس" maxlength="40">
+          <button class="btn btn-primary btn-sm" id="btnSaveDesign" style="flex-shrink:0">💾 حفظ</button>
+        </div>
+        <div id="designList"></div>
+        <p id="cloudMsg" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></p>
+      </div>
+    </div>
+
     <div class="section">
       <h3>🎨 القالب</h3>
       <div class="tpl-grid" id="tplGrid">
@@ -291,6 +333,23 @@
     <div class="hint">المعاينة مباشرة — الصورة النهائية تُصدَّر بدقة كاملة</div>
   </section>
 </main>
+
+<div class="modal-back" id="authModal">
+  <div class="modal">
+    <h2>حساب الوسيط العقاري</h2>
+    <div class="tabs">
+      <button class="btn btn-primary" id="tabLogin">دخول</button>
+      <button class="btn btn-ghost" id="tabSignup">حساب جديد</button>
+    </div>
+    <label class="fld">البريد الإلكتروني</label>
+    <input type="text" id="authEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
+    <label class="fld">كلمة المرور</label>
+    <input type="password" id="authPass" placeholder="6 أحرف على الأقل" dir="ltr" autocomplete="current-password">
+    <button class="btn btn-primary" style="width:100%;margin-top:16px" id="btnAuthGo">دخول</button>
+    <div class="msg" id="authMsg"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:4px" id="btnAuthClose">إغلاق</button>
+  </div>
+</div>
 
 <script>
 'use strict';
@@ -935,6 +994,168 @@ if (document.fonts){
   document.fonts.ready.then(render);
   setTimeout(render, 1000);
 }
+
+/* ==================== الحفظ السحابي: Supabase ==================== */
+/* بعد إنشاء مشروعك في supabase.com ضع القيمتين من Settings → API هنا: */
+const SUPABASE_URL = 'ضع_رابط_المشروع_هنا';        // مثال: https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'ضع_مفتاح_anon_هنا';
+
+const cloudConfigured = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 40;
+const sb = (cloudConfigured && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let user = null;
+let authMode = 'login';
+
+const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','agent','phone'];
+
+function collectDesign(){
+  const o = { tpl: state.tpl, W: state.W, H: state.H, color: state.color };
+  FIELD_IDS.forEach(id => o[id] = $(id).value);
+  return o;
+}
+function applyDesign(o){
+  FIELD_IDS.forEach(id => { if (o[id] !== undefined) $(id).value = o[id]; });
+  state.tpl = o.tpl || 'modern';
+  state.W = o.W || 1080; state.H = o.H || 1080;
+  state.color = o.color || '#c9a227';
+  document.querySelectorAll('#tplGrid .tpl-btn').forEach(b => b.classList.toggle('active', b.dataset.tpl === state.tpl));
+  document.querySelectorAll('#sizeRow .size-btn').forEach(b => b.classList.toggle('active', +b.dataset.w === state.W && +b.dataset.h === state.H));
+  document.querySelectorAll('.color-dot').forEach(b => b.classList.toggle('active', b.dataset.c === state.color));
+  render();
+}
+
+function cloudUI(){
+  $('cloudOff').style.display = cloudConfigured ? 'none' : 'block';
+  $('cloudOut').style.display = (sb && !user) ? 'block' : 'none';
+  $('cloudIn').style.display  = (sb && user)  ? 'block' : 'none';
+  const box = $('authBox');
+  box.innerHTML = '';
+  if (user){
+    const em = document.createElement('span'); em.textContent = user.email;
+    const out = document.createElement('button');
+    out.className = 'btn btn-ghost btn-sm'; out.textContent = 'خروج';
+    out.onclick = () => sb.auth.signOut();
+    box.append(em, out);
+  } else if (sb){
+    const b = document.createElement('button');
+    b.className = 'btn btn-ghost btn-sm'; b.textContent = 'تسجيل الدخول';
+    b.onclick = openAuth;
+    box.append(b);
+  }
+}
+
+function openAuth(){
+  $('authMsg').className = 'msg'; $('authMsg').textContent = '';
+  $('authModal').classList.add('open');
+}
+$('btnOpenAuth').onclick = openAuth;
+$('btnAuthClose').onclick = () => $('authModal').classList.remove('open');
+$('authModal').addEventListener('click', e => { if (e.target === $('authModal')) $('authModal').classList.remove('open'); });
+
+function setAuthMode(m){
+  authMode = m;
+  $('tabLogin').className  = 'btn ' + (m === 'login'  ? 'btn-primary' : 'btn-ghost');
+  $('tabSignup').className = 'btn ' + (m === 'signup' ? 'btn-primary' : 'btn-ghost');
+  $('btnAuthGo').textContent = m === 'login' ? 'دخول' : 'إنشاء الحساب';
+}
+$('tabLogin').onclick = () => setAuthMode('login');
+$('tabSignup').onclick = () => setAuthMode('signup');
+
+$('btnAuthGo').onclick = async () => {
+  const email = $('authEmail').value.trim();
+  const password = $('authPass').value;
+  const msg = $('authMsg');
+  if (!email.includes('@') || password.length < 6){
+    msg.className = 'msg err';
+    msg.textContent = 'أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف على الأقل';
+    return;
+  }
+  msg.className = 'msg'; msg.textContent = 'لحظات…';
+  try{
+    if (authMode === 'login'){
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      $('authModal').classList.remove('open');
+    } else {
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if (error) throw error;
+      if (data.session) $('authModal').classList.remove('open');
+      else { msg.className = 'msg ok'; msg.textContent = 'تم! افتح بريدك واضغط رابط التأكيد ثم عد وسجّل الدخول'; }
+    }
+  }catch(err){
+    msg.className = 'msg err';
+    msg.textContent = 'خطأ: ' + (err.message || err);
+  }
+};
+
+async function afterLogin(){
+  const { data: p } = await sb.from('profiles').select('agent_name, phone').eq('id', user.id).maybeSingle();
+  if (p){
+    if (p.agent_name) $('agent').value = p.agent_name;
+    if (p.phone) $('phone').value = p.phone;
+    render();
+  }
+  loadDesigns();
+}
+
+async function loadDesigns(){
+  const { data, error } = await sb.from('designs')
+    .select('id, name').order('created_at', { ascending: false }).limit(20);
+  const list = $('designList');
+  list.innerHTML = '';
+  if (error){ $('cloudMsg').textContent = 'تعذر جلب التصاميم: ' + error.message; return; }
+  if (!data || !data.length){
+    list.innerHTML = '<p style="font-size:12px;color:var(--muted);margin-top:8px">لا توجد تصاميم محفوظة بعد</p>';
+    return;
+  }
+  data.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'design-item';
+    const name = document.createElement('span'); name.textContent = row.name;
+    const open = document.createElement('button'); open.textContent = '📂'; open.title = 'فتح التصميم';
+    const del  = document.createElement('button'); del.textContent  = '🗑'; del.title  = 'حذف';
+    open.onclick = async () => {
+      const { data: d, error: e } = await sb.from('designs').select('data').eq('id', row.id).single();
+      if (e){ $('cloudMsg').textContent = 'تعذر الفتح: ' + e.message; return; }
+      applyDesign(d.data);
+      $('designName').value = row.name;
+      $('cloudMsg').textContent = '✔ تم فتح «' + row.name + '» (الصورة لا تُحفظ — ارفعها من جديد)';
+    };
+    del.onclick = async () => {
+      if (!confirm('حذف «' + row.name + '»؟')) return;
+      await sb.from('designs').delete().eq('id', row.id);
+      loadDesigns();
+    };
+    div.append(name, open, del);
+    list.appendChild(div);
+  });
+}
+
+$('btnSaveDesign').onclick = async () => {
+  if (!sb || !user) return;
+  const name = $('designName').value.trim() || $('title').value.trim() || 'تصميم بدون اسم';
+  $('cloudMsg').textContent = 'جارٍ الحفظ…';
+  const { error } = await sb.from('designs').insert({ user_id: user.id, name, data: collectDesign() });
+  await sb.from('profiles').upsert({ id: user.id, agent_name: $('agent').value.trim(), phone: $('phone').value.trim() });
+  if (error){ $('cloudMsg').textContent = 'خطأ في الحفظ: ' + error.message; return; }
+  $('cloudMsg').textContent = '✔ تم حفظ «' + name + '»';
+  loadDesigns();
+};
+
+(async function initCloud(){
+  cloudUI();
+  if (!sb) return;
+  const { data: { session } } = await sb.auth.getSession();
+  user = session ? session.user : null;
+  cloudUI();
+  if (user) afterLogin();
+  sb.auth.onAuthStateChange((_event, s) => {
+    const prev = user ? user.id : null;
+    user = s ? s.user : null;
+    cloudUI();
+    if (user && user.id !== prev) afterLogin();
+  });
+})();
 </script>
 </body>
 </html>
