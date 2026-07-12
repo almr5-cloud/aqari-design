@@ -248,9 +248,10 @@
       <input type="file" id="fileImg" accept="image/*" hidden>
       <label class="fld">تكبير الصورة <span style="color:var(--muted);font-weight:400">(اسحب الصورة في المعاينة لتحريكها)</span></label>
       <input type="range" id="zoom" min="100" max="300" value="100">
-      <label class="fld">صور إضافية لقالب «معرض» (حتى 3 صور)</label>
+      <label class="fld">صور إضافية لقالب «معرض» (حتى 3 صور — واحدة أو أكثر في كل مرة)</label>
       <button class="btn btn-ghost" style="width:100%" id="btnExtra">⬆ رفع الصور الإضافية</button>
       <input type="file" id="fileExtra" accept="image/*" multiple hidden>
+      <div id="extraSlots" style="display:flex;gap:8px;margin-top:8px"></div>
     </div>
 
     <div class="section">
@@ -1196,25 +1197,58 @@ stage.addEventListener('drop', e => {
 $('btnLogo').onclick = () => $('fileLogo').click();
 $('fileLogo').onchange = e => loadImage(e.target.files[0], 'logo');
 
-/* الصور الإضافية لقالب «معرض» */
+/* الصور الإضافية لقالب «معرض» — إضافة تراكمية حتى 3 صور مع حذف فردي */
+function updateExtraBtn(){
+  const n = state.extraImgs.length;
+  $('btnExtra').textContent = n
+    ? '✔ ' + n + (n === 1 ? ' صورة' : ' صور') + (n < 3 ? ' — أضف المزيد' : ' — اكتمل العدد')
+    : '⬆ رفع الصور الإضافية';
+}
+function renderExtraSlots(){
+  const wrap = $('extraSlots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < 3; i++){
+    const d = document.createElement('div');
+    d.style.cssText = 'width:64px;height:48px;border-radius:8px;border:1px solid var(--border);'
+      + 'background:var(--panel2);position:relative;overflow:hidden;display:grid;place-items:center;'
+      + 'font-size:11px;color:var(--muted);flex-shrink:0';
+    const img = state.extraImgs[i];
+    if (img){
+      const im = document.createElement('img');
+      im.src = img.src;
+      im.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      d.appendChild(im);
+      const x = document.createElement('button');
+      x.textContent = '✕'; x.title = 'إزالة الصورة';
+      x.style.cssText = 'position:absolute;top:2px;left:2px;width:18px;height:18px;border:none;'
+        + 'border-radius:50%;background:#000c;color:#fff;cursor:pointer;font-size:10px;line-height:1;padding:0';
+      x.onclick = () => {
+        state.extraImgs.splice(i, 1);
+        renderExtraSlots(); updateExtraBtn(); render();
+      };
+      d.appendChild(x);
+    } else {
+      d.textContent = i + 1;
+    }
+    wrap.appendChild(d);
+  }
+}
 $('btnExtra').onclick = () => $('fileExtra').click();
 $('fileExtra').onchange = e => {
-  const files = [...e.target.files].filter(f => f.type.startsWith('image/')).slice(0, 3);
-  if (!files.length) return;
-  state.extraImgs = [];
-  let loaded = 0;
-  files.forEach((f, i) => {
+  const files = [...e.target.files].filter(f => f.type.startsWith('image/'));
+  e.target.value = '';   // يسمح باختيار نفس الملف مجدداً لاحقاً
+  const room = 3 - state.extraImgs.length;
+  if (!files.length || room <= 0) return;
+  files.slice(0, room).forEach(f => {
     const img = new Image();
     img.onload = () => {
-      state.extraImgs[i] = img;
-      if (++loaded === files.length){
-        $('btnExtra').textContent = '✔ ' + files.length + (files.length === 1 ? ' صورة' : ' صور') + ' — اضغط للتغيير';
-        render();
-      }
+      if (state.extraImgs.length < 3) state.extraImgs.push(img);
+      renderExtraSlots(); updateExtraBtn(); render();
     };
     img.src = URL.createObjectURL(f);
   });
 };
+renderExtraSlots();
 
 function loadImage(file, key){
   if (!file || !file.type.startsWith('image/')) return;
