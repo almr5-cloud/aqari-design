@@ -298,6 +298,8 @@
           </select>
         </div>
       </div>
+      <label class="fld">معلومة إضافية (اختياري)</label>
+      <input type="text" id="info" placeholder="مثال: على شارعين، رقم الرخصة 7100000000" maxlength="50">
     </div>
 
     <div class="section">
@@ -307,6 +309,8 @@
         <div><label class="fld">دورات المياه</label><input type="text" id="baths" value="4" inputmode="numeric"></div>
         <div><label class="fld">المساحة م²</label><input type="text" id="area" value="450" inputmode="numeric"></div>
       </div>
+      <label class="fld">مواصفة إضافية (اختياري)</label>
+      <input type="text" id="extra1" placeholder="مثال: مسبح خاص، مصعد، ملحق خارجي" maxlength="25">
     </div>
 
     <div class="section">
@@ -470,6 +474,7 @@ function featureItems(d){
   if (d.beds)  items.push({ic:'🛏️', v:d.beds,  l:'غرف نوم'});
   if (d.baths) items.push({ic:'🛁', v:d.baths, l:'دورات مياه'});
   if (d.area)  items.push({ic:'📐', v:d.area + ' م²', l:'المساحة'});
+  if (d.extra) items.push({ic:'✨', v:d.extra, l:''});
   return items;
 }
 
@@ -484,6 +489,8 @@ function getData(){
     beds: $('beds').value.trim(),
     baths: $('baths').value.trim(),
     area: $('area').value.trim(),
+    extra: $('extra1').value.trim(),
+    info: $('info').value.trim(),
     agent: $('agent').value.trim(),
     phone: $('phone').value.trim(),
   };
@@ -560,6 +567,14 @@ function tplModern(c, W, H, d){
   c.fillText(priceTxt, W - 56*s, y);
   y -= ps*0.85 + 26*s;
 
+  // معلومة إضافية (تظهر تحت الموقع)
+  if (d.info){
+    c.font = `400 ${28*s}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.6)';
+    c.fillText(d.info, W - 56*s, y);
+    y -= 50*s;
+  }
+
   // الموقع
   if (d.loc){
     c.font = `500 ${34*s}px ${SANS}`;
@@ -633,6 +648,7 @@ function tplLuxury(c, W, H, d){
   let needed = 40*s + 62*s;
   if (d.title) needed += ts0*0.7 + 34*s;
   if (d.loc)   needed += 56*s;
+  if (d.info)  needed += 48*s;
   needed += 64*s;
   needed += ps0*0.8;
   if (items.length) needed += 78*s;
@@ -659,6 +675,12 @@ function tplLuxury(c, W, H, d){
     c.fillStyle = 'rgba(255,255,255,0.65)';
     c.fillText('📍 ' + d.loc, W/2, y);
     y += 56*s*f;
+  }
+  if (d.info){
+    c.font = `400 ${26*s * Math.max(f, 0.85)}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.45)';
+    c.fillText(d.info, W/2, y);
+    y += 48*s*f;
   }
 
   // فاصل ذهبي
@@ -745,6 +767,12 @@ function tplClean(c, W, H, d){
     c.fillText('📍 ' + d.loc, W - 56*s, y + 26*s);
     y += 66*s;
   }
+  if (d.info){
+    c.font = `400 ${26*s}px ${SANS}`;
+    c.fillStyle = '#98a1b0';
+    c.fillText(d.info, W - 56*s, y + 20*s);
+    y += 46*s;
+  }
 
   // السعر يسار + المواصفات يمين
   const rowY = Math.min(y + 60*s, H - barH - 70*s);
@@ -812,6 +840,7 @@ function tplCard(c, W, H, d){
   let ch = 100*s;
   if (d.title) ch += 66*s;
   if (d.loc)   ch += 54*s;
+  if (d.info)  ch += 48*s;
   if (items.length) ch += 100*s;
   ch += 92*s;
   const cy = H - cm - ch;
@@ -852,6 +881,13 @@ function tplCard(c, W, H, d){
     c.fillStyle = '#7a8494';
     c.fillText('📍 ' + d.loc, xr, y);
     y += 58*s;
+  }
+  if (d.info){
+    c.textAlign = 'right';
+    c.font = `400 ${25*s}px ${SANS}`;
+    c.fillStyle = '#98a1b0';
+    c.fillText(d.info, xr, y);
+    y += 48*s;
   }
 
   if (items.length){
@@ -981,6 +1017,12 @@ function tplGallery(c, W, H, d){
     c.fillStyle = 'rgba(255,255,255,0.7)';
     c.fillText('📍 ' + d.loc, txR, y);
   }
+  if (d.info){
+    const ifs = fitText(c, d.info, txR - txL, 26*s, 400, SANS);
+    c.font = `400 ${ifs}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.5)';
+    c.fillText(d.info, txR, y + 52*s);
+  }
 
   // صف المواصفات بأيقونات وفواصل
   const items = featureItems(d);
@@ -1071,7 +1113,7 @@ document.querySelectorAll('#sizeRow .size-btn').forEach(b => b.onclick = () => {
   render();
 });
 
-['badge','ptype','title','loc','price','currency','beds','baths','area','agent','phone']
+['badge','ptype','title','loc','price','currency','beds','baths','area','extra1','info','agent','phone']
   .forEach(id => $(id).addEventListener('input', render));
 
 $('zoom').addEventListener('input', e => {
@@ -1197,7 +1239,7 @@ const sb = (cloudConfigured && window.supabase)
 let user = null;
 let authMode = 'login';
 
-const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','agent','phone'];
+const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','extra1','info','agent','phone'];
 
 function collectDesign(){
   const o = { tpl: state.tpl, W: state.W, H: state.H, color: state.color };
