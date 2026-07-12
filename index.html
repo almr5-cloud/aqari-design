@@ -1245,15 +1245,26 @@ cv.addEventListener('pointermove', e => {
 });
 cv.addEventListener('pointerup', () => dragging = false);
 
-/* التحميل — للمشتركين فقط */
+/* التحميل — للمشتركين فقط وضمن حد الباقة الشهري */
 function download(type){
   if (!requirePro('تحميل أكثر من تصميم')) return;
+  if (sb && user && isPro() && downloadsCount >= PRO_MONTHLY_DOWNLOADS){
+    $('cloudMsg').textContent = '⛔ استهلكت حد باقتك الشهري (' + PRO_MONTHLY_DOWNLOADS + ' تصميماً) — يتجدد تلقائياً مطلع الشهر القادم';
+    $('planBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
   render();
   const title = $('title').value.trim() || 'اعلان-عقاري';
   const a = document.createElement('a');
   a.download = title.replace(/\s+/g, '-') + (type === 'jpg' ? '.jpg' : '.png');
   a.href = type === 'jpg' ? cv.toDataURL('image/jpeg', 0.92) : cv.toDataURL('image/png');
   a.click();
+  // تسجيل التحميل في العداد الشهري
+  if (sb && user && isPro()){
+    downloadsCount++;
+    updatePlanUI();
+    sb.from('downloads').insert({ user_id: user.id }).then(() => {});
+  }
 }
 $('btnPng').onclick = () => download('png');
 $('btnJpg').onclick = () => download('jpg');
@@ -1286,7 +1297,10 @@ let authMode = 'login';
 /* ==================== الاشتراك إلزامي: لا خطة مجانية ==================== */
 /* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
 const PAYMENT_LINK = 'https://whop.com/manal-1644/cfb5ed24-fbaf-4619-b2d8-4dcbc03f7278/';
+/* حد التحميلات الشهري لباقة 49 ريال — غيّر الرقم هنا فقط */
+const PRO_MONTHLY_DOWNLOADS = 30;
 let subscription = null;
+let downloadsCount = 0;
 
 function isPro(){
   return !!(subscription && subscription.plan === 'pro' && subscription.status === 'active'
@@ -1312,7 +1326,7 @@ function requirePro(actionName){
 function updatePlanUI(){
   const line = $('planLine'), btn = $('btnUpgrade');
   if (isPro()){
-    line.innerHTML = '⭐ اشتراكك: <b>نشط</b> — تحميل وحفظ بلا حدود';
+    line.innerHTML = '⭐ اشتراكك: <b>نشط</b> — حمّلت ' + downloadsCount + ' من ' + PRO_MONTHLY_DOWNLOADS + ' تصميماً هذا الشهر';
     btn.style.display = 'none';
   } else {
     line.textContent = 'لا يوجد اشتراك نشط — اشترك لتتمكن من تحميل وحفظ التصاميم';
@@ -1324,6 +1338,12 @@ async function refreshPlan(){
   const { data: sub } = await sb.from('subscriptions')
     .select('plan, status, current_period_end').eq('user_id', user.id).maybeSingle();
   subscription = sub || null;
+  // عدد تحميلات الشهر الحالي
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const { count, error } = await sb.from('downloads')
+    .select('id', { count: 'exact', head: true })
+    .gte('created_at', monthStart.toISOString());
+  downloadsCount = error ? 0 : (count || 0);
   updatePlanUI();
 }
 
