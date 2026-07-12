@@ -1470,9 +1470,22 @@ $('btnAuthGo').onclick = async () => {
     }
   }catch(err){
     msg.className = 'msg err';
-    msg.textContent = 'خطأ: ' + (err.message || err);
+    msg.textContent = authErrorText(err.message || err);
   }
 };
+
+/* ترجمة أخطاء المصادقة لرسائل عربية مفهومة */
+function authErrorText(m){
+  m = String(m || '');
+  const wait = m.match(/after (\d+) seconds/);
+  if (wait) return 'لأسباب أمنية: انتظر ' + wait[1] + ' ثانية ثم أعد المحاولة';
+  if (/Invalid login credentials/i.test(m)) return 'البريد أو كلمة المرور غير صحيحة';
+  if (/already registered/i.test(m)) return 'هذا البريد مسجّل مسبقاً — اضغط «دخول» بدلاً من «حساب جديد»';
+  if (/Email not confirmed/i.test(m)) return 'حسابك غير مفعّل بعد — افتح بريدك واضغط رابط التأكيد';
+  if (/rate limit/i.test(m)) return 'محاولات كثيرة متتالية — انتظر دقيقة ثم أعد المحاولة';
+  if (/at least 6/i.test(m)) return 'كلمة المرور قصيرة — 6 أحرف على الأقل';
+  return 'خطأ: ' + m;
+}
 
 async function afterLogin(){
   const { data: p } = await sb.from('profiles').select('agent_name, phone').eq('id', user.id).maybeSingle();
