@@ -200,7 +200,7 @@
         <p style="font-size:12.5px;color:var(--muted)">الحفظ السحابي غير مفعّل بعد — املأ SUPABASE_URL و SUPABASE_ANON_KEY في أعلى كود الصفحة.</p>
       </div>
       <div id="cloudOut" style="display:none">
-        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px">سجّل الدخول لحفظ تصاميمك واسترجاعها من أي جهاز</p>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px">صمّم وعاين مجاناً — التحميل والحفظ باشتراك 49 ريال/شهرياً</p>
         <button class="btn btn-primary" style="width:100%" id="btnOpenAuth">تسجيل الدخول / إنشاء حساب</button>
       </div>
       <div id="cloudIn" style="display:none">
@@ -213,7 +213,7 @@
         <p id="cloudMsg" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></p>
         <div id="planBox" style="margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)">
           <div id="planLine" style="font-size:12.5px;color:var(--muted)">…</div>
-          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ الترقية إلى Pro — 49 ريال/شهر</button>
+          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ اشترك الآن — 49 ريال/شهر</button>
         </div>
       </div>
     </div>
@@ -1245,8 +1245,9 @@ cv.addEventListener('pointermove', e => {
 });
 cv.addEventListener('pointerup', () => dragging = false);
 
-/* التحميل */
+/* التحميل — للمشتركين فقط */
 function download(type){
+  if (!requirePro('تحميل التصميم')) return;
   render();
   const title = $('title').value.trim() || 'اعلان-عقاري';
   const a = document.createElement('a');
@@ -1282,25 +1283,39 @@ const sb = (cloudConfigured && window.supabase)
 let user = null;
 let authMode = 'login';
 
-/* ==================== الاشتراكات: مجاني (3 تصاميم/شهر) أو Pro ==================== */
+/* ==================== الاشتراك إلزامي: لا خطة مجانية ==================== */
 /* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
 const PAYMENT_LINK = 'https://whop.com/manal-1644/cfb5ed24-fbaf-4619-b2d8-4dcbc03f7278/';
-const FREE_MONTHLY_LIMIT = 3;
 let subscription = null;
-let monthlyCount = 0;
 
 function isPro(){
   return !!(subscription && subscription.plan === 'pro' && subscription.status === 'active'
     && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date()));
 }
 
+/* بوابة الاشتراك: تُرجع true للمشترك فقط، وتوجّه غيره للدخول أو الدفع */
+function requirePro(actionName){
+  if (!sb) return true;               // لا سحابة مضبوطة = لا بوابة
+  if (isPro()) return true;
+  if (!user){
+    openAuth();
+    const msg = $('authMsg');
+    msg.className = 'msg err';
+    msg.textContent = 'سجّل الدخول ثم فعّل اشتراكك (49 ريال/شهر) لتتمكن من ' + actionName;
+  } else {
+    $('cloudMsg').textContent = '⭐ ' + actionName + ' يتطلب اشتراكاً نشطاً — 49 ريال/شهرياً';
+    $('btnUpgrade').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  return false;
+}
+
 function updatePlanUI(){
   const line = $('planLine'), btn = $('btnUpgrade');
   if (isPro()){
-    line.innerHTML = '⭐ خطتك: <b>Pro</b> — تصاميم غير محدودة';
+    line.innerHTML = '⭐ اشتراكك: <b>نشط</b> — تحميل وحفظ بلا حدود';
     btn.style.display = 'none';
   } else {
-    line.textContent = 'الخطة المجانية: استخدمت ' + monthlyCount + ' من ' + FREE_MONTHLY_LIMIT + ' تصاميم هذا الشهر';
+    line.textContent = 'لا يوجد اشتراك نشط — اشترك لتتمكن من تحميل وحفظ التصاميم';
     btn.style.display = 'block';
   }
 }
@@ -1309,11 +1324,6 @@ async function refreshPlan(){
   const { data: sub } = await sb.from('subscriptions')
     .select('plan, status, current_period_end').eq('user_id', user.id).maybeSingle();
   subscription = sub || null;
-  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
-  const { count } = await sb.from('designs')
-    .select('id', { count: 'exact', head: true })
-    .gte('created_at', monthStart.toISOString());
-  monthlyCount = count || 0;
   updatePlanUI();
 }
 
@@ -1456,18 +1466,13 @@ async function loadDesigns(){
 
 $('btnSaveDesign').onclick = async () => {
   if (!sb || !user) return;
-  if (!isPro() && monthlyCount >= FREE_MONTHLY_LIMIT){
-    $('cloudMsg').textContent = '⛔ وصلت حد الخطة المجانية (' + FREE_MONTHLY_LIMIT + ' تصاميم شهرياً) — رقِّ إلى Pro للحفظ بلا حدود';
-    return;
-  }
+  if (!requirePro('حفظ التصاميم')) return;
   const name = $('designName').value.trim() || $('title').value.trim() || 'تصميم بدون اسم';
   $('cloudMsg').textContent = 'جارٍ الحفظ…';
   const { error } = await sb.from('designs').insert({ user_id: user.id, name, data: collectDesign() });
   await sb.from('profiles').upsert({ id: user.id, agent_name: $('agent').value.trim(), phone: $('phone').value.trim() });
   if (error){ $('cloudMsg').textContent = 'خطأ في الحفظ: ' + error.message; return; }
   $('cloudMsg').textContent = '✔ تم حفظ «' + name + '»';
-  monthlyCount++;
-  updatePlanUI();
   loadDesigns();
 };
 
