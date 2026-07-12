@@ -1283,7 +1283,8 @@ let user = null;
 let authMode = 'login';
 
 /* ==================== الاشتراكات: مجاني (3 تصاميم/شهر) أو Pro ==================== */
-const STRIPE_PAYMENT_LINK = '';   // ضع رابط الدفع (Stripe Payment Link) هنا عند جاهزيته
+/* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
+const PAYMENT_LINK = '';
 const FREE_MONTHLY_LIMIT = 3;
 let subscription = null;
 let monthlyCount = 0;
@@ -1318,14 +1319,13 @@ async function refreshPlan(){
 
 $('btnUpgrade').onclick = () => {
   if (!user) return;
-  if (!STRIPE_PAYMENT_LINK){
+  if (!PAYMENT_LINK){
     $('cloudMsg').textContent = 'الدفع الإلكتروني قيد التجهيز — تواصل معنا لتفعيل اشتراك Pro يدوياً';
     return;
   }
-  const url = STRIPE_PAYMENT_LINK
-    + '?client_reference_id=' + encodeURIComponent(user.id)
-    + '&prefilled_email=' + encodeURIComponent(user.email || '');
-  window.open(url, '_blank');
+  // ملاحظة مهمة تظهر للوسيط: يجب الدفع بنفس بريد حسابه حتى يُفعَّل اشتراكه
+  $('cloudMsg').textContent = 'ادفع بنفس بريدك المسجّل (' + (user.email || '') + ') ليتم تفعيل اشتراكك';
+  window.open(PAYMENT_LINK, '_blank');
 };
 
 const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','extra1','info','agent','phone'];
