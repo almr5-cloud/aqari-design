@@ -1247,7 +1247,7 @@ cv.addEventListener('pointerup', () => dragging = false);
 
 /* التحميل — للمشتركين فقط */
 function download(type){
-  if (!requirePro('تحميل التصميم')) return;
+  if (!requirePro('تحميل أكثر من تصميم')) return;
   render();
   const title = $('title').value.trim() || 'اعلان-عقاري';
   const a = document.createElement('a');
