@@ -211,6 +211,10 @@
         </div>
         <div id="designList"></div>
         <p id="cloudMsg" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></p>
+        <div id="planBox" style="margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)">
+          <div id="planLine" style="font-size:12.5px;color:var(--muted)">…</div>
+          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ الترقية إلى Pro — 49 ريال/شهر</button>
+        </div>
       </div>
     </div>
 
@@ -1278,6 +1282,52 @@ const sb = (cloudConfigured && window.supabase)
 let user = null;
 let authMode = 'login';
 
+/* ==================== الاشتراكات: مجاني (3 تصاميم/شهر) أو Pro ==================== */
+const STRIPE_PAYMENT_LINK = '';   // ضع رابط الدفع (Stripe Payment Link) هنا عند جاهزيته
+const FREE_MONTHLY_LIMIT = 3;
+let subscription = null;
+let monthlyCount = 0;
+
+function isPro(){
+  return !!(subscription && subscription.plan === 'pro' && subscription.status === 'active'
+    && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date()));
+}
+
+function updatePlanUI(){
+  const line = $('planLine'), btn = $('btnUpgrade');
+  if (isPro()){
+    line.innerHTML = '⭐ خطتك: <b>Pro</b> — تصاميم غير محدودة';
+    btn.style.display = 'none';
+  } else {
+    line.textContent = 'الخطة المجانية: استخدمت ' + monthlyCount + ' من ' + FREE_MONTHLY_LIMIT + ' تصاميم هذا الشهر';
+    btn.style.display = 'block';
+  }
+}
+
+async function refreshPlan(){
+  const { data: sub } = await sb.from('subscriptions')
+    .select('plan, status, current_period_end').eq('user_id', user.id).maybeSingle();
+  subscription = sub || null;
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const { count } = await sb.from('designs')
+    .select('id', { count: 'exact', head: true })
+    .gte('created_at', monthStart.toISOString());
+  monthlyCount = count || 0;
+  updatePlanUI();
+}
+
+$('btnUpgrade').onclick = () => {
+  if (!user) return;
+  if (!STRIPE_PAYMENT_LINK){
+    $('cloudMsg').textContent = 'الدفع الإلكتروني قيد التجهيز — تواصل معنا لتفعيل اشتراك Pro يدوياً';
+    return;
+  }
+  const url = STRIPE_PAYMENT_LINK
+    + '?client_reference_id=' + encodeURIComponent(user.id)
+    + '&prefilled_email=' + encodeURIComponent(user.email || '');
+  window.open(url, '_blank');
+};
+
 const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','extra1','info','agent','phone'];
 
 function collectDesign(){
@@ -1368,6 +1418,7 @@ async function afterLogin(){
     render();
   }
   loadDesigns();
+  refreshPlan();
 }
 
 async function loadDesigns(){
@@ -1405,12 +1456,18 @@ async function loadDesigns(){
 
 $('btnSaveDesign').onclick = async () => {
   if (!sb || !user) return;
+  if (!isPro() && monthlyCount >= FREE_MONTHLY_LIMIT){
+    $('cloudMsg').textContent = '⛔ وصلت حد الخطة المجانية (' + FREE_MONTHLY_LIMIT + ' تصاميم شهرياً) — رقِّ إلى Pro للحفظ بلا حدود';
+    return;
+  }
   const name = $('designName').value.trim() || $('title').value.trim() || 'تصميم بدون اسم';
   $('cloudMsg').textContent = 'جارٍ الحفظ…';
   const { error } = await sb.from('designs').insert({ user_id: user.id, name, data: collectDesign() });
   await sb.from('profiles').upsert({ id: user.id, agent_name: $('agent').value.trim(), phone: $('phone').value.trim() });
   if (error){ $('cloudMsg').textContent = 'خطأ في الحفظ: ' + error.message; return; }
   $('cloudMsg').textContent = '✔ تم حفظ «' + name + '»';
+  monthlyCount++;
+  updatePlanUI();
   loadDesigns();
 };
 
