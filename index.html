@@ -83,6 +83,9 @@
   .sw-clean::after{content:''; position:absolute; bottom:5px; right:8px; width:40%; height:5px; border-radius:3px; background:#2dd4a7}
   .sw-card{background:linear-gradient(120deg,#5a768c,#8ba3b5)}
   .sw-card::after{content:''; position:absolute; bottom:5px; right:6px; left:6px; height:45%; border-radius:5px; background:#fff}
+  .sw-gallery{background:linear-gradient(175deg,#a8c6dd 0%,#a8c6dd 40%,#141414 41%)}
+  .sw-gallery::before{content:''; position:absolute; top:38%; left:8%; width:36%; height:44%; border:1px solid #c9a227; background:linear-gradient(120deg,#7d95a8,#a8bcc9); transform:rotate(-4deg)}
+  .sw-gallery::after{content:''; position:absolute; bottom:0; right:0; left:0; height:4px; background:linear-gradient(90deg,#8a6d1c,#e3c04f)}
 
   .size-row{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
   .size-btn{
@@ -218,6 +221,7 @@
         <button class="tpl-btn" data-tpl="luxury"><div class="swatch sw-luxury"></div><span>فاخر</span></button>
         <button class="tpl-btn" data-tpl="clean"><div class="swatch sw-clean"></div><span>نظيف</span></button>
         <button class="tpl-btn" data-tpl="card"><div class="swatch sw-card"></div><span>بطاقة</span></button>
+        <button class="tpl-btn" data-tpl="gallery"><div class="swatch sw-gallery"></div><span>معرض</span></button>
       </div>
     </div>
 
@@ -240,6 +244,9 @@
       <input type="file" id="fileImg" accept="image/*" hidden>
       <label class="fld">تكبير الصورة <span style="color:var(--muted);font-weight:400">(اسحب الصورة في المعاينة لتحريكها)</span></label>
       <input type="range" id="zoom" min="100" max="300" value="100">
+      <label class="fld">صور إضافية لقالب «معرض» (حتى 3 صور)</label>
+      <button class="btn btn-ghost" style="width:100%" id="btnExtra">⬆ رفع الصور الإضافية</button>
+      <input type="file" id="fileExtra" accept="image/*" multiple hidden>
     </div>
 
     <div class="section">
@@ -364,6 +371,7 @@ const state = {
   tpl: 'modern',
   W: 1080, H: 1080,
   img: null, logo: null,
+  extraImgs: [],
   zoom: 1, offX: 0, offY: 0,
   color: '#c9a227',
 };
@@ -432,6 +440,16 @@ function drawCover(c, x, y, w, h){
   dx = Math.min(x, Math.max(x+w-dw, dx));
   dy = Math.min(y, Math.max(y+h-dh, dy));
   c.drawImage(img, dx, dy, dw, dh);
+  c.restore();
+}
+
+/* رسم صورة معيّنة داخل مستطيل بأسلوب cover */
+function drawImgCover(c, img, x, y, w, h){
+  const r = Math.max(w/img.width, h/img.height);
+  const dw = img.width*r, dh = img.height*r;
+  c.save();
+  c.beginPath(); c.rect(x, y, w, h); c.clip();
+  c.drawImage(img, x+(w-dw)/2, y+(h-dh)/2, dw, dh);
   c.restore();
 }
 
@@ -876,8 +894,160 @@ function tplCard(c, W, H, d){
   }
 }
 
+/* ============ القالب 5: معرض ============ */
+function tplGallery(c, W, H, d){
+  const s = W/1080;
+  const gold = state.color;
+
+  // خلفية داكنة بنقش خفيف
+  c.fillStyle = '#141414'; c.fillRect(0, 0, W, H);
+  c.strokeStyle = 'rgba(255,255,255,0.035)'; c.lineWidth = 1;
+  for (let i = 0; i < W+H; i += 40*s){
+    c.beginPath(); c.moveTo(i, 0); c.lineTo(0, i); c.stroke();
+  }
+
+  // الصورة الرئيسية بحافة سفلية مائلة
+  const yL = H*0.47, yR = H*0.42;
+  c.save();
+  c.beginPath();
+  c.moveTo(0, 0); c.lineTo(W, 0); c.lineTo(W, yR); c.lineTo(0, yL);
+  c.closePath(); c.clip();
+  drawCover(c, 0, 0, W, yL);
+  c.restore();
+  // خط ذهبي على الحافة المائلة
+  c.strokeStyle = gold; c.lineWidth = 4*s;
+  c.beginPath(); c.moveTo(0, yL); c.lineTo(W, yR); c.stroke();
+
+  c.direction = 'rtl'; c.textBaseline = 'middle';
+
+  // شارة الحالة + الشعار
+  c.font = `700 ${32*s}px ${SANS}`;
+  const bw = c.measureText(d.badge).width + 56*s;
+  rr(c, W - bw - 44*s, 40*s, bw, 60*s, 30*s);
+  c.fillStyle = gold; c.fill();
+  c.fillStyle = isLight(gold) ? '#111' : '#fff';
+  c.textAlign = 'center';
+  c.fillText(d.badge, W - 44*s - bw/2, 40*s + 31*s);
+  drawLogo(c, 44*s, 36*s, 120*s);
+
+  // إطارات الصور الجانبية الثلاثة (يمين) بميل خفيف متبادل
+  const fw = W*0.385, fh = H*0.155, fgap = H*0.022;
+  const fx = W*0.565;
+  let fy = H*0.415;
+  const angles = [-0.02, 0.02, -0.015];
+  for (let i = 0; i < 3; i++){
+    const img = state.extraImgs[i] || state.img;
+    const cx = fx + fw/2, cy = fy + fh/2;
+    c.save();
+    c.translate(cx, cy); c.rotate(angles[i]);
+    c.save();
+    c.shadowColor = '#000a'; c.shadowBlur = 22*s; c.shadowOffsetY = 8*s;
+    c.fillStyle = '#0d0d0d';
+    c.fillRect(-fw/2 - 5*s, -fh/2 - 5*s, fw + 10*s, fh + 10*s);
+    c.restore();
+    c.strokeStyle = gold; c.lineWidth = 3*s;
+    c.strokeRect(-fw/2 - 5*s, -fh/2 - 5*s, fw + 10*s, fh + 10*s);
+    if (img){
+      drawImgCover(c, img, -fw/2, -fh/2, fw, fh);
+    } else {
+      const g2 = c.createLinearGradient(-fw/2, 0, fw/2, 0);
+      g2.addColorStop(0, '#2c333c'); g2.addColorStop(1, '#3d4c5c');
+      c.fillStyle = g2; c.fillRect(-fw/2, -fh/2, fw, fh);
+      c.fillStyle = '#ffffff44';
+      c.font = `900 ${fh*0.5}px ${SANS}`; c.textAlign = 'center';
+      c.fillText('🏠', 0, 2*s);
+    }
+    c.restore();
+    fy += fh + fgap;
+  }
+
+  // منطقة النص (يسار الإطارات)
+  const txR = W*0.53, txL = 50*s;
+  let y = H*0.545;
+  c.textAlign = 'right';
+  c.font = `700 ${26*s}px ${SANS}`;
+  c.fillStyle = gold;
+  c.fillText('✦ ' + d.ptype, txR, y);
+  y += 66*s;
+  if (d.title){
+    const ts = fitText(c, d.title, txR - txL, 60*s, 700, SANS);
+    c.font = `700 ${ts}px ${SANS}`;
+    c.fillStyle = '#fff';
+    c.fillText(d.title, txR, y);
+    y += ts + 22*s;
+  }
+  if (d.loc){
+    c.font = `400 ${30*s}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.7)';
+    c.fillText('📍 ' + d.loc, txR, y);
+  }
+
+  // صف المواصفات بأيقونات وفواصل
+  const items = featureItems(d);
+  if (items.length){
+    const rowY = H*0.79;
+    const cellW = (txR - txL) / items.length;
+    items.forEach((it, i) => {
+      const cx = txR - cellW*i - cellW/2;
+      c.textAlign = 'center';
+      c.font = `700 ${34*s}px ${SANS}`;
+      c.fillStyle = '#fff';
+      c.fillText(it.ic + ' ' + it.v, cx, rowY);
+      c.font = `400 ${22*s}px ${SANS}`;
+      c.fillStyle = gold;
+      c.fillText(it.l, cx, rowY + 40*s);
+      if (i < items.length - 1){
+        c.strokeStyle = 'rgba(255,255,255,0.2)'; c.lineWidth = 1.5*s;
+        c.beginPath();
+        c.moveTo(txR - cellW*(i+1), rowY - 24*s);
+        c.lineTo(txR - cellW*(i+1), rowY + 48*s);
+        c.stroke();
+      }
+    });
+  }
+
+  // زر السعر الذهبي
+  const pillY = H*0.885, pillH = 74*s;
+  const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
+  c.font = `700 ${34*s}px ${SANS}`;
+  const pw = Math.min(c.measureText(priceTxt).width + 70*s, W*0.5);
+  const pg = c.createLinearGradient(txL, 0, txL + pw, 0);
+  pg.addColorStop(0, darken(gold, 0.72));
+  pg.addColorStop(0.5, gold);
+  pg.addColorStop(1, darken(gold, 0.78));
+  rr(c, txL, pillY, pw, pillH, pillH/2);
+  c.fillStyle = pg; c.fill();
+  c.fillStyle = isLight(gold) ? '#161005' : '#fff';
+  c.textAlign = 'center';
+  const pfs = fitText(c, priceTxt, pw - 40*s, 34*s, 700, SANS);
+  c.font = `700 ${pfs}px ${SANS}`;
+  c.fillText(priceTxt, txL + pw/2, pillY + pillH/2 + 2*s);
+
+  // التواصل: اسم المكتب + الجوال
+  const parts = [];
+  if (d.agent) parts.push(d.agent);
+  if (d.phone) parts.push('📞 ' + d.phone);
+  if (parts.length){
+    const line = parts.join('   •   ');
+    const maxW = W - (txL + pw) - 110*s;
+    const cfs = fitText(c, line, Math.max(maxW, W*0.3), 27*s, 700, SANS);
+    c.font = `700 ${cfs}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.85)';
+    c.textAlign = 'right';
+    c.fillText(line, W - 50*s, H*0.962);
+  }
+
+  // الشريط الذهبي السفلي
+  const bg = c.createLinearGradient(0, 0, W, 0);
+  bg.addColorStop(0, darken(gold, 0.7));
+  bg.addColorStop(0.5, gold);
+  bg.addColorStop(1, darken(gold, 0.7));
+  c.fillStyle = bg;
+  c.fillRect(0, H - 14*s, W, 14*s);
+}
+
 /* ---------- الرسم ---------- */
-const templates = { modern: tplModern, luxury: tplLuxury, clean: tplClean, card: tplCard };
+const templates = { modern: tplModern, luxury: tplLuxury, clean: tplClean, card: tplCard, gallery: tplGallery };
 
 function render(){
   cv.width = state.W; cv.height = state.H;
@@ -940,6 +1110,26 @@ stage.addEventListener('drop', e => {
 
 $('btnLogo').onclick = () => $('fileLogo').click();
 $('fileLogo').onchange = e => loadImage(e.target.files[0], 'logo');
+
+/* الصور الإضافية لقالب «معرض» */
+$('btnExtra').onclick = () => $('fileExtra').click();
+$('fileExtra').onchange = e => {
+  const files = [...e.target.files].filter(f => f.type.startsWith('image/')).slice(0, 3);
+  if (!files.length) return;
+  state.extraImgs = [];
+  let loaded = 0;
+  files.forEach((f, i) => {
+    const img = new Image();
+    img.onload = () => {
+      state.extraImgs[i] = img;
+      if (++loaded === files.length){
+        $('btnExtra').textContent = '✔ ' + files.length + (files.length === 1 ? ' صورة' : ' صور') + ' — اضغط للتغيير';
+        render();
+      }
+    };
+    img.src = URL.createObjectURL(f);
+  });
+};
 
 function loadImage(file, key){
   if (!file || !file.type.startsWith('image/')) return;
