@@ -539,23 +539,47 @@ function tplModern(c, W, H, d){
   c.beginPath(); c.moveTo(56*s, y); c.lineTo(W-56*s, y); c.stroke();
   y -= 60*s;
 
-  // المواصفات
+  // المواصفات — تتقلص لتتسع، وتنقسم لسطرين إذا زادت العناصر
   const items = featureItems(d);
   if (items.length){
-    const gap = 26*s, chipH = 78*s;
-    c.font = `700 ${30*s}px ${SANS}`;
-    const widths = items.map(it => c.measureText(it.ic + '  ' + it.v + ' ' + it.l).width + 52*s);
-    const total = widths.reduce((a,b)=>a+b,0) + gap*(items.length-1);
-    let x = W - (W-total)/2;   // نبدأ من اليمين
-    items.forEach((it, i) => {
-      const w = widths[i];
-      rr(c, x - w, y - chipH/2, w, chipH, 16*s);
-      c.fillStyle = 'rgba(255,255,255,0.14)'; c.fill();
-      c.fillStyle = '#fff'; c.textAlign = 'center';
-      c.fillText(it.ic + '  ' + it.v + ' ' + it.l, x - w/2, y + 2*s);
-      x -= w + gap;
-    });
-    y -= chipH/2 + 54*s;
+    const availW = W - 90*s;
+    const textOf = it => it.ic + '  ' + it.v + (it.l ? ' ' + it.l : '');
+    const fitFs = arr => {
+      let fs = 30*s;
+      while (fs > 14){
+        c.font = `700 ${fs}px ${SANS}`;
+        const tot = arr.reduce((a,it) => a + c.measureText(textOf(it)).width + fs*1.75, 0) + fs*0.9*(arr.length-1);
+        if (tot <= availW) break;
+        fs -= 1;
+      }
+      return fs;
+    };
+    let rows = [items];
+    if (items.length >= 3 && fitFs(items) < 22*s){
+      const half = Math.ceil(items.length/2);
+      rows = [items.slice(0, half), items.slice(half)];
+    }
+    // نرسم الصفوف من الأسفل إلى الأعلى
+    for (let r = rows.length - 1; r >= 0; r--){
+      const arr = rows[r];
+      const fs = fitFs(arr);
+      c.font = `700 ${fs}px ${SANS}`;
+      const gap = fs*0.9;
+      const widths = arr.map(it => c.measureText(textOf(it)).width + fs*1.75);
+      const total = widths.reduce((a,b)=>a+b,0) + gap*(arr.length-1);
+      const chipH = fs*2.6;
+      let x = W - (W-total)/2;   // نبدأ من اليمين
+      arr.forEach((it, i) => {
+        const w = widths[i];
+        rr(c, x - w, y - chipH/2, w, chipH, chipH*0.2);
+        c.fillStyle = 'rgba(255,255,255,0.14)'; c.fill();
+        c.fillStyle = '#fff'; c.textAlign = 'center';
+        c.fillText(textOf(it), x - w/2, y + 2*s);
+        x -= w + gap;
+      });
+      y -= chipH + 18*s;
+    }
+    y -= 36*s;
   }
 
   // السعر
@@ -778,17 +802,28 @@ function tplClean(c, W, H, d){
   const rowY = Math.min(y + 60*s, H - barH - 70*s);
   const items = featureItems(d);
   if (items.length){
+    // تصغير موحّد حتى لا تزاحم المواصفات منطقة السعر يساراً
+    const availW = W - 56*s - W*0.42 - 70*s;
+    const wOf = (it, k) => {
+      c.font = `700 ${30*s*k}px ${SANS}`;
+      const wv = c.measureText(it.ic + ' ' + it.v).width;
+      c.font = `500 ${22*s*k}px ${SANS}`;
+      return Math.max(wv, c.measureText(it.l).width);
+    };
+    const totalAt = k => items.reduce((a,it) => a + wOf(it,k), 0) + 88*s*k*(items.length-1);
+    let k = 1;
+    while (k > 0.55 && totalAt(k) > availW) k -= 0.05;
     let x = W - 56*s;
     items.forEach(it => {
       const t = it.ic + ' ' + it.v;
-      const l = it.l;
       c.fillStyle = '#141a22'; c.textAlign = 'right';
-      c.font = `700 ${30*s}px ${SANS}`;
-      c.fillText(t, x, rowY - 16*s);
+      c.font = `700 ${30*s*k}px ${SANS}`;
+      c.fillText(t, x, rowY - 16*s*k);
+      const wv = c.measureText(t).width;
       c.fillStyle = '#98a1b0';
-      c.font = `500 ${22*s}px ${SANS}`;
-      c.fillText(l, x, rowY + 22*s);
-      x -= Math.max(c.measureText(t).width, c.measureText(l).width) + 96*s;
+      c.font = `500 ${22*s*k}px ${SANS}`;
+      c.fillText(it.l, x, rowY + 22*s*k);
+      x -= Math.max(wv, c.measureText(it.l).width) + 88*s*k;
     });
   }
   const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
@@ -897,10 +932,12 @@ function tplCard(c, W, H, d){
     items.forEach((it, i) => {
       const cx = xr - cellW*i - cellW/2;
       c.textAlign = 'center';
-      c.font = `700 ${30*s}px ${SANS}`;
+      const vfs = fitText(c, it.ic + ' ' + it.v, cellW - 24*s, 30*s, 700, SANS);
+      c.font = `700 ${vfs}px ${SANS}`;
       c.fillStyle = '#141a22';
       c.fillText(it.ic + ' ' + it.v, cx, y);
-      c.font = `500 ${21*s}px ${SANS}`;
+      const lfs = fitText(c, it.l, cellW - 24*s, 21*s, 500, SANS);
+      c.font = `500 ${lfs}px ${SANS}`;
       c.fillStyle = '#98a1b0';
       c.fillText(it.l, cx, y + 36*s);
       if (i < items.length - 1){
@@ -1032,10 +1069,12 @@ function tplGallery(c, W, H, d){
     items.forEach((it, i) => {
       const cx = txR - cellW*i - cellW/2;
       c.textAlign = 'center';
-      c.font = `700 ${34*s}px ${SANS}`;
+      const vfs = fitText(c, it.ic + ' ' + it.v, cellW - 20*s, 34*s, 700, SANS);
+      c.font = `700 ${vfs}px ${SANS}`;
       c.fillStyle = '#fff';
       c.fillText(it.ic + ' ' + it.v, cx, rowY);
-      c.font = `400 ${22*s}px ${SANS}`;
+      const lfs = fitText(c, it.l, cellW - 20*s, 22*s, 400, SANS);
+      c.font = `400 ${lfs}px ${SANS}`;
       c.fillStyle = gold;
       c.fillText(it.l, cx, rowY + 40*s);
       if (i < items.length - 1){
