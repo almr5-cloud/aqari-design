@@ -1,18 +1,20 @@
 // ================================================================
 // عقاري ديزاين — استقبال إشعارات الدفع من Whop وتفعيل الاشتراك تلقائياً
 // تُنشر كـ Edge Function باسم whop-webhook (مع تعطيل Verify JWT)
-// الرابط النهائي الذي يوضع في Whop → Developer → Webhooks:
-// https://pjhafrhjmvyirrcmnrhc.supabase.co/functions/v1/whop-webhook?key=15aa419b9ab1ca7d827788336218c5ea5ffa8e65cb074ed9
+//
+// الأمان: المفتاح السري يُضبط كـSecret باسم WEBHOOK_KEY من لوحة Supabase
+// (Edge Functions → Secrets) ولا يُكتب هنا أبداً — هذا الملف عام على GitHub.
+// رابط الويبهوك في Whop: https://<PROJECT>.supabase.co/functions/v1/whop-webhook?key=<WEBHOOK_KEY>
 // ================================================================
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const WEBHOOK_KEY = "15aa419b9ab1ca7d827788336218c5ea5ffa8e65cb074ed9";
+const WEBHOOK_KEY = Deno.env.get("WEBHOOK_KEY") ?? "";
 
 Deno.serve(async (req) => {
   try {
-    // التحقق من مفتاح الأمان في الرابط
+    // التحقق من مفتاح الأمان في الرابط — يرفض كل شيء إن لم يُضبط السر
     const url = new URL(req.url);
-    if (url.searchParams.get("key") !== WEBHOOK_KEY) {
+    if (!WEBHOOK_KEY || url.searchParams.get("key") !== WEBHOOK_KEY) {
       return new Response("unauthorized", { status: 401 });
     }
     if (req.method !== "POST") {
