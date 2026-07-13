@@ -107,11 +107,12 @@
   .drop small{color:var(--muted); font-size:11px}
 
   label.fld{display:block; font-size:12px; font-weight:700; color:var(--muted); margin:10px 0 5px}
-  input[type=text], input[type=tel], input[type=password], select{
+  input[type=text], input[type=tel], input[type=password], select, textarea{
     width:100%; background:var(--panel2); border:1px solid var(--border); border-radius:9px;
     padding:9px 12px; color:var(--text); font-family:inherit; font-size:14px; outline:none; transition:.15s;
   }
-  input:focus, select:focus{border-color:var(--accent)}
+  textarea{resize:vertical; min-height:110px; line-height:1.7}
+  input:focus, select:focus, textarea:focus{border-color:var(--accent)}
   .row2{display:grid; grid-template-columns:1fr 1fr; gap:8px}
   .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
 
@@ -252,6 +253,18 @@
       <button class="btn btn-ghost" style="width:100%" id="btnExtra">⬆ رفع الصور الإضافية</button>
       <input type="file" id="fileExtra" accept="image/*" multiple hidden>
       <div id="extraSlots" style="display:flex;gap:8px;margin-top:8px"></div>
+    </div>
+
+    <div class="section">
+      <h3>✨ اللصق الذكي</h3>
+      <label class="fld">الصق نص إعلانك كاملاً (من واتساب أو غيره) وسيستخرج البيانات ويعبّئ التصميم تلقائياً</label>
+      <textarea id="smartText" placeholder="فرصه لشراء ✨
+شقه ارضية مخطط الرابية - الهفوف
+المساحه ٢٦٠ متر — دورين دبلكسيه
+السعر ٥٧٠ الف شامل
+لتواصل 0567153060 ( محمد الهلال )"></textarea>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" id="btnSmart">✨ تعبئة التصميم تلقائياً</button>
+      <p id="smartMsg" style="font-size:12px;color:var(--muted);margin-top:6px;min-height:16px"></p>
     </div>
 
     <div class="section">
@@ -499,6 +512,124 @@ function getData(){
     agent: $('agent').value.trim(),
     phone: $('phone').value.trim(),
   };
+}
+
+/* ==================== اللصق الذكي: استخراج بيانات الإعلان من النص ==================== */
+function toEnDigits(s){
+  return s.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+          .replace(/[۰-۹]/g, d => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+}
+const AR_NUMS = {
+  'واحد':1,'واحدة':1,'اثنين':2,'اثنتين':2,'ثنتين':2,
+  'ثلاث':3,'ثلاثة':3,'اربع':4,'اربعة':4,'أربع':4,'أربعة':4,
+  'خمس':5,'خمسة':5,'ست':6,'ستة':6,'سبع':7,'سبعة':7,
+  'ثمان':8,'ثمانية':8,'تسع':9,'تسعة':9,'عشر':10,'عشرة':10
+};
+function arNum(w){
+  if (!w) return 0;
+  w = w.replace(/^و/, '');
+  if (/^\d+$/.test(w)) return +w;
+  return AR_NUMS[w] || 0;
+}
+
+function smartFill(){
+  const raw = $('smartText').value;
+  if (!raw.trim()){ $('smartMsg').textContent = 'الصق نص الإعلان أولاً'; return; }
+  const clean = toEnDigits(raw)
+    .replace(/[*_~•✨✔️❇️🔥📌⭐🏠🏡✅☑️]/g, ' ')
+    .replace(/[ \t]+/g, ' ');
+  const lines = clean.split(/\n+/).map(l => l.trim()).filter(l => l.length > 1);
+  const filled = [];
+  let m;
+
+  // الحالة
+  if (/للإيجار|للايجار|إيجار|ايجار/.test(clean)) $('badge').value = 'للإيجار';
+  else if (/استثمار/.test(clean)) $('badge').value = 'للاستثمار';
+  else $('badge').value = 'للبيع';
+  filled.push('الحالة');
+
+  // نوع العقار
+  const typeMap = [
+    [/فيلا|فله|فلة/, 'فيلا'], [/شقه|شقة/, 'شقة'], [/دوبلكس|دبلكس/, 'دوبلكس'],
+    [/ارض|أرض/, 'أرض'], [/عمارة|عماره/, 'عمارة'], [/استراحة|استراحه/, 'استراحة'],
+    [/شاليه/, 'شاليه'], [/مزرعة|مزرعه/, 'مزرعة'], [/محل/, 'محل تجاري'], [/مكتب/, 'مكتب']
+  ];
+  for (const [re, v] of typeMap){
+    if (re.test(clean)){ $('ptype').value = v; filled.push('النوع'); break; }
+  }
+
+  // الموقع: حي / مخطط + ما بعده
+  const locM = clean.match(/((?:حي|مخطط)\s+[^\n,،]+)/);
+  let locVal = '';
+  if (locM){
+    locVal = locM[1].trim().replace(/\s+/g, ' ');
+    $('loc').value = locVal.slice(0, 40);
+    filled.push('الموقع');
+  }
+
+  // العنوان: أول سطر يذكر نوع العقار (بعد إزالة الموقع منه)
+  const typeWords = /فيلا|فله|شقه|شقة|دوبلكس|دبلكس|ارض|أرض|عمارة|عماره|استراحة|استراحه|شاليه|مزرعة|مزرعه|محل|مكتب|دور/;
+  const titleLine = lines.find(l => typeWords.test(l));
+  if (titleLine){
+    let t = titleLine;
+    if (locVal) t = t.replace(locVal, '');
+    t = t.replace(/[-–—]\s*$/, '').replace(/\s+/g, ' ').trim();
+    if (t.length < 8) t = titleLine.replace(/\s+/g, ' ').trim();
+    $('title').value = t.slice(0, 40);
+    filled.push('العنوان');
+  }
+
+  // المساحة
+  const areaM = clean.match(/مساح[ةه]?\S*\s*:?\s*([\d.,]+)/) || clean.match(/([\d.,]+)\s*م(?:تر)?[²2]?\b/);
+  if (areaM){ $('area').value = areaM[1].replace(/[.,]/g, ''); filled.push('المساحة'); }
+
+  // غرف النوم ودورات المياه — يجمع كل الإشارات في النص (كل الأدوار)
+  let beds = 0, baths = 0;
+  const bedRe = /(\S+)?\s*(غرفتين|غرفة|غرف)\s*نوم/g;
+  while ((m = bedRe.exec(clean)) !== null){
+    if (m[2] === 'غرفتين') beds += 2;
+    else beds += arNum(m[1]) || 1;
+  }
+  const bathRe = /(\S+)?\s*(دورتين|دورة|دورات)\s*(مياه|المياه)/g;
+  while ((m = bathRe.exec(clean)) !== null){
+    if (m[2] === 'دورتين') baths += 2;
+    else baths += arNum(m[1]) || 1;
+  }
+  if (beds){ $('beds').value = beds; filled.push('غرف النوم (' + beds + ')'); }
+  if (baths){ $('baths').value = baths; filled.push('دورات المياه (' + baths + ')'); }
+
+  // السعر: "السعر ٥٧٠ الف" أو "مليون ونص" التقريبية غير مدعومة — الأرقام فقط
+  let priceM = clean.match(/سعر[^0-9\n]*([\d.,]+)\s*(الف|ألف|مليون)?/);
+  if (!priceM) priceM = clean.match(/([\d.,]+)\s*(الف|ألف|مليون)/);
+  if (priceM){
+    let n = parseFloat(priceM[1].replace(/,/g, ''));
+    if (priceM[2] && /الف|ألف/.test(priceM[2])) n *= 1000;
+    if (priceM[2] === 'مليون') n *= 1000000;
+    if (n){ $('price').value = Math.round(n); filled.push('السعر'); }
+  }
+
+  // معلومة إضافية
+  if (/شامل/.test(clean)){ $('info').value = 'السعر شامل'; filled.push('معلومة إضافية'); }
+
+  // مواصفة إضافية: أول ميزة مميزة تُذكر
+  const extraMap = [
+    [/دورين/, 'دورين'], [/مسبح/, 'مسبح'], [/مصعد/, 'مصعد'], [/كراج/, 'كراج'],
+    [/ملحق/, 'ملحق'], [/حوش/, 'حوش'], [/مجلس/, 'مجلس رجال'], [/مستودع/, 'مستودع']
+  ];
+  for (const [re, v] of extraMap){
+    if (re.test(clean)){ $('extra1').value = v; filled.push('مواصفة إضافية'); break; }
+  }
+
+  // الجوال واسم الوسيط
+  const phM = clean.match(/(05\d{8})/);
+  if (phM){ $('phone').value = phM[1]; filled.push('الجوال'); }
+  const agM = clean.match(/\(\s*([^()\n]{3,30})\s*\)/);
+  if (agM){ $('agent').value = agM[1].trim().slice(0, 35); filled.push('اسم الوسيط'); }
+
+  render();
+  $('smartMsg').textContent = filled.length > 1
+    ? '✔ تم استخراج: ' + filled.join('، ') + ' — راجع الحقول وعدّل ما يلزم'
+    : 'لم أتعرف على بيانات واضحة في النص — املأ الحقول يدوياً';
 }
 
 /* ============ القالب 1: عصري ============ */
@@ -1164,6 +1295,8 @@ $('zoom').addEventListener('input', e => {
   state.zoom = e.target.value / 100;
   render();
 });
+
+$('btnSmart').onclick = smartFill;
 
 document.querySelectorAll('.color-dot').forEach(dot => dot.onclick = () => {
   document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('active'));
