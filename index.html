@@ -1598,8 +1598,16 @@ $('btnAuthGo').onclick = async () => {
     } else {
       const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
-      if (data.session) $('authModal').classList.remove('open');
-      else { msg.className = 'msg ok'; msg.textContent = 'تم! افتح بريدك واضغط رابط التأكيد ثم عد وسجّل الدخول'; }
+      if (data.session){
+        $('authModal').classList.remove('open');
+      } else if (data.user && data.user.identities && data.user.identities.length === 0){
+        // البريد مسجّل مسبقاً — Supabase لا يرسل بريداً في هذه الحالة
+        msg.className = 'msg err';
+        msg.textContent = 'هذا البريد مسجّل مسبقاً — اضغط تبويب «دخول» وادخل بكلمة مرورك';
+      } else {
+        msg.className = 'msg ok';
+        msg.textContent = 'تم إنشاء الحساب! افتح بريدك (وتفقد مجلد Spam) واضغط رابط التأكيد ثم عد وسجّل الدخول';
+      }
     }
   }catch(err){
     msg.className = 'msg err';
