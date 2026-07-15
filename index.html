@@ -371,11 +371,12 @@
       <button class="btn btn-primary" id="tabLogin">دخول</button>
       <button class="btn btn-ghost" id="tabSignup">حساب جديد</button>
     </div>
-    <label class="fld">البريد الإلكتروني</label>
+    <label class="fld" id="authEmailLabel">البريد الإلكتروني</label>
     <input type="text" id="authEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
     <label class="fld">كلمة المرور</label>
     <input type="password" id="authPass" placeholder="6 أحرف على الأقل" dir="ltr" autocomplete="current-password">
-    <button class="btn btn-primary" style="width:100%;margin-top:16px" id="btnAuthGo">دخول</button>
+    <button id="btnForgot" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;text-decoration:underline;padding:0">نسيت كلمة المرور؟</button>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" id="btnAuthGo">دخول</button>
     <div class="msg" id="authMsg"></div>
     <button class="btn btn-ghost" style="width:100%;margin-top:4px" id="btnAuthClose">إغلاق</button>
   </div>
@@ -1568,8 +1569,10 @@ function openAuth(){
   $('authModal').classList.add('open');
 }
 $('btnOpenAuth').onclick = openAuth;
-$('btnAuthClose').onclick = () => $('authModal').classList.remove('open');
-$('authModal').addEventListener('click', e => { if (e.target === $('authModal')) $('authModal').classList.remove('open'); });
+$('btnAuthClose').onclick = () => { $('authModal').classList.remove('open'); resetAuthModal(); };
+$('authModal').addEventListener('click', e => {
+  if (e.target === $('authModal')){ $('authModal').classList.remove('open'); resetAuthModal(); }
+});
 
 function setAuthMode(m){
   authMode = m;
@@ -1580,10 +1583,76 @@ function setAuthMode(m){
 $('tabLogin').onclick = () => setAuthMode('login');
 $('tabSignup').onclick = () => setAuthMode('signup');
 
-$('btnAuthGo').onclick = async () => {
+/* استرجاع كلمة المرور */
+function openRecovery(){
+  openAuth();
+  $('tabLogin').style.display = 'none';
+  $('tabSignup').style.display = 'none';
+  $('authEmailLabel').style.display = 'none';
+  $('authEmail').style.display = 'none';
+  $('btnForgot').style.display = 'none';
+  document.querySelector('#authModal h2').textContent = 'تعيين كلمة مرور جديدة';
+  $('btnAuthGo').textContent = 'حفظ كلمة المرور الجديدة';
+  authMode = 'recovery';
+}
+function resetAuthModal(){
+  $('tabLogin').style.display = '';
+  $('tabSignup').style.display = '';
+  $('authEmailLabel').style.display = '';
+  $('authEmail').style.display = '';
+  $('btnForgot').style.display = '';
+  document.querySelector('#authModal h2').textContent = 'حساب الوسيط العقاري';
+  if (authMode === 'recovery') setAuthMode('login');
+}
+
+$('btnForgot').onclick = async () => {
   const email = $('authEmail').value.trim();
-  const password = $('authPass').value;
   const msg = $('authMsg');
+  if (!email.includes('@')){
+    msg.className = 'msg err';
+    msg.textContent = 'اكتب بريدك في الخانة أولاً ثم اضغط «نسيت كلمة المرور»';
+    return;
+  }
+  msg.className = 'msg'; msg.textContent = 'لحظات…';
+  try{
+    const opts = /^https?:/.test(location.origin)
+      ? { redirectTo: location.origin + location.pathname } : undefined;
+    const { error } = await sb.auth.resetPasswordForEmail(email, opts);
+    if (error) throw error;
+    msg.className = 'msg ok';
+    msg.textContent = 'أرسلنا رابط تعيين كلمة المرور إلى بريدك — افتحه (وتفقد مجلد Spam)';
+  }catch(err){
+    msg.className = 'msg err';
+    msg.textContent = authErrorText(err.message || err);
+  }
+};
+
+$('btnAuthGo').onclick = async () => {
+  const msg = $('authMsg');
+  const password = $('authPass').value;
+
+  // وضع تعيين كلمة المرور الجديدة (بعد فتح رابط الاسترجاع)
+  if (authMode === 'recovery'){
+    if (password.length < 6){
+      msg.className = 'msg err';
+      msg.textContent = 'كلمة المرور الجديدة: 6 أحرف على الأقل';
+      return;
+    }
+    msg.className = 'msg'; msg.textContent = 'لحظات…';
+    try{
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) throw error;
+      msg.className = 'msg ok';
+      msg.textContent = '✔ تم تحديث كلمة مرورك وأنت الآن داخل حسابك';
+      setTimeout(() => { $('authModal').classList.remove('open'); resetAuthModal(); }, 1500);
+    }catch(err){
+      msg.className = 'msg err';
+      msg.textContent = authErrorText(err.message || err);
+    }
+    return;
+  }
+
+  const email = $('authEmail').value.trim();
   if (!email.includes('@') || password.length < 6){
     msg.className = 'msg err';
     msg.textContent = 'أدخل بريداً صحيحاً وكلمة مرور من 6 أحرف على الأقل';
@@ -1691,10 +1760,11 @@ $('btnSaveDesign').onclick = async () => {
   user = session ? session.user : null;
   cloudUI();
   if (user) afterLogin();
-  sb.auth.onAuthStateChange((_event, s) => {
+  sb.auth.onAuthStateChange((event, s) => {
     const prev = user ? user.id : null;
     user = s ? s.user : null;
     cloudUI();
+    if (event === 'PASSWORD_RECOVERY'){ openRecovery(); return; }
     if (user && user.id !== prev) afterLogin();
   });
 })();
