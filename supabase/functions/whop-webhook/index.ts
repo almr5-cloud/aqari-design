@@ -40,8 +40,9 @@ Deno.serve(async (req) => {
     if (!email) return new Response("no email in payload", { status: 200 });
 
     // تحديد نوع الحدث: تفعيل أم إلغاء
-    const activate = /payment[._]succeeded|went[._]valid|membership[._]went[._]valid/i.test(action);
-    const deactivate = /went[._]invalid|membership[._]went[._]invalid/i.test(action);
+    // أسماء الأحداث الفعلية في Whop: membership_activated / membership_deactivated / invoice_paid
+    const activate = /payment[._]succeeded|went[._]valid|membership[._]activated|invoice[._]paid/i.test(action);
+    const deactivate = /went[._]invalid|membership[._]deactivated/i.test(action);
     if (!activate && !deactivate) {
       return new Response("ignored action: " + action, { status: 200 });
     }
