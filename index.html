@@ -86,6 +86,9 @@
   .sw-gallery{background:linear-gradient(175deg,#a8c6dd 0%,#a8c6dd 40%,#141414 41%)}
   .sw-gallery::before{content:''; position:absolute; top:38%; left:8%; width:36%; height:44%; border:1px solid #c9a227; background:linear-gradient(120deg,#7d95a8,#a8bcc9); transform:rotate(-4deg)}
   .sw-gallery::after{content:''; position:absolute; bottom:0; right:0; left:0; height:4px; background:linear-gradient(90deg,#8a6d1c,#e3c04f)}
+  .sw-strip{background:linear-gradient(120deg,#7d95a8,#a8bcc9)}
+  .sw-strip::after{content:''; position:absolute; top:0; bottom:0; right:0; width:38%; background:#141a22}
+  .sw-strip::before{content:''; position:absolute; top:0; bottom:0; right:38%; width:4px; background:#2dd4a7; z-index:1}
 
   .size-row{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
   .size-btn{
@@ -227,6 +230,7 @@
         <button class="tpl-btn" data-tpl="clean"><div class="swatch sw-clean"></div><span>نظيف</span></button>
         <button class="tpl-btn" data-tpl="card"><div class="swatch sw-card"></div><span>بطاقة</span></button>
         <button class="tpl-btn" data-tpl="gallery"><div class="swatch sw-gallery"></div><span>معرض</span></button>
+        <button class="tpl-btn" data-tpl="strip"><div class="swatch sw-strip"></div><span>شريطي</span></button>
       </div>
     </div>
 
@@ -1264,8 +1268,118 @@ function tplGallery(c, W, H, d){
   c.fillRect(0, H - 14*s, W, 14*s);
 }
 
+/* ============ القالب 6: شريطي ============ */
+function tplStrip(c, W, H, d){
+  const s = W/1080;
+  const col = state.color;
+  const stripW = W * 0.42;
+  const imgW = W - stripW;
+  const px = imgW;                 // بداية الشريط (على اليمين)
+
+  // الصورة تملأ الجهة اليسرى
+  drawCover(c, 0, 0, imgW, H);
+  // تظليل ناعم عند حافة الصورة الملاصقة للشريط
+  const g = c.createLinearGradient(imgW - 90*s, 0, imgW, 0);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.28)');
+  c.fillStyle = g; c.fillRect(imgW - 90*s, 0, 90*s, H);
+
+  // الشريط الجانبي الداكن + خط لوني فاصل
+  c.fillStyle = '#141a22'; c.fillRect(px, 0, stripW, H);
+  c.fillStyle = col; c.fillRect(px - 6*s, 0, 6*s, H);
+
+  c.direction = 'rtl'; c.textBaseline = 'middle';
+  const xr = W - 48*s;
+  const innerW = stripW - 80*s;
+
+  drawLogo(c, px + 40*s, 42*s, 84*s);
+
+  // شارة الحالة
+  c.font = `700 ${27*s}px ${SANS}`;
+  const bw = Math.min(c.measureText(d.badge).width + 44*s, innerW);
+  rr(c, xr - bw, 50*s, bw, 52*s, 26*s);
+  c.fillStyle = col; c.fill();
+  c.fillStyle = isLight(col) ? '#111' : '#fff';
+  c.textAlign = 'center';
+  c.fillText(d.badge, xr - bw/2, 50*s + 27*s);
+
+  let y = 158*s;
+  c.textAlign = 'right';
+
+  // نوع العقار
+  c.font = `700 ${25*s}px ${SANS}`;
+  c.fillStyle = col;
+  c.fillText('● ' + d.ptype, xr, y);
+  y += 54*s;
+
+  // العنوان
+  if (d.title){
+    const ts = fitText(c, d.title, innerW, 46*s, 700, SANS);
+    c.font = `700 ${ts}px ${SANS}`;
+    c.fillStyle = '#fff';
+    c.fillText(d.title, xr, y);
+    y += ts + 20*s;
+  }
+  // الموقع
+  if (d.loc){
+    const ls = fitText(c, '📍 ' + d.loc, innerW, 27*s, 400, SANS);
+    c.font = `400 ${ls}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.72)';
+    c.fillText('📍 ' + d.loc, xr, y);
+    y += 44*s;
+  }
+  // معلومة إضافية
+  if (d.info){
+    const ifs = fitText(c, d.info, innerW, 23*s, 400, SANS);
+    c.font = `400 ${ifs}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.5)';
+    c.fillText(d.info, xr, y);
+    y += 42*s;
+  }
+
+  y += 12*s;
+  c.strokeStyle = 'rgba(255,255,255,0.15)'; c.lineWidth = 1.5*s;
+  c.beginPath(); c.moveTo(xr, y); c.lineTo(xr - innerW, y); c.stroke();
+  y += 40*s;
+
+  // السعر
+  const priceTxt = d.price ? `${d.price} ${d.currency}` : 'السعر عند الطلب';
+  const ps = fitText(c, priceTxt, innerW, 50*s, 900, SERIF);
+  c.font = `900 ${ps}px ${SERIF}`;
+  c.fillStyle = col;
+  c.fillText(priceTxt, xr, y);
+  y += ps*0.8 + 38*s;
+
+  // المواصفات — كل مواصفة سطر مستقل
+  const items = featureItems(d);
+  items.forEach(it => {
+    const line = it.ic + '  ' + it.v + (it.l ? ' ' + it.l : '');
+    const fs = fitText(c, line, innerW, 27*s, 700, SANS);
+    c.font = `700 ${fs}px ${SANS}`;
+    c.fillStyle = '#fff'; c.textAlign = 'right';
+    c.fillText(line, xr, y);
+    y += 48*s;
+  });
+
+  // بيانات الوسيط أسفل الشريط
+  let by = H - 42*s;
+  c.textAlign = 'right';
+  if (d.phone){
+    const pfs = fitText(c, d.phone + ' 📞', innerW, 26*s, 700, SANS);
+    c.font = `700 ${pfs}px ${SANS}`;
+    c.fillStyle = col;
+    c.fillText(d.phone + ' 📞', xr, by);
+    by -= 42*s;
+  }
+  if (d.agent){
+    const afs = fitText(c, d.agent, innerW, 25*s, 700, SANS);
+    c.font = `700 ${afs}px ${SANS}`;
+    c.fillStyle = 'rgba(255,255,255,0.85)';
+    c.fillText(d.agent, xr, by);
+  }
+}
+
 /* ---------- الرسم ---------- */
-const templates = { modern: tplModern, luxury: tplLuxury, clean: tplClean, card: tplCard, gallery: tplGallery };
+const templates = { modern: tplModern, luxury: tplLuxury, clean: tplClean, card: tplCard, gallery: tplGallery, strip: tplStrip };
 
 function render(){
   cv.width = state.W; cv.height = state.H;
