@@ -1521,10 +1521,43 @@ $('btnUpgrade').onclick = () => {
     $('cloudMsg').textContent = 'الدفع الإلكتروني قيد التجهيز — تواصل معنا لتفعيل اشتراك Pro يدوياً';
     return;
   }
-  // ملاحظة مهمة تظهر للوسيط: يجب الدفع بنفس بريد حسابه حتى يُفعَّل اشتراكه
-  $('cloudMsg').textContent = 'ادفع بنفس بريدك المسجّل (' + (user.email || '') + ') ليتم تفعيل اشتراكك';
-  window.open(PAYMENT_LINK, '_blank');
+  showPayGuard();
 };
+
+/* نافذة تحذير مهمة قبل الدفع: تمنع خطأ اختلاف البريد (خاصة مع Apple Pay) */
+function showPayGuard(){
+  const email = user.email || '';
+  let ov = document.getElementById('payGuard');
+  if (ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'payGuard';
+  ov.className = 'modal-back open';
+  ov.innerHTML =
+    '<div class="modal" style="width:400px;text-align:center">'
+    + '<div style="font-size:34px">⚠️</div>'
+    + '<h2 style="margin:8px 0 4px">قبل الدفع — خطوة مهمة جداً</h2>'
+    + '<p style="font-size:13.5px;color:var(--muted);line-height:1.8;margin-bottom:14px">'
+    + 'لتفعيل اشتراكك تلقائياً، <b style="color:var(--text)">لازم</b> تدفع بنفس بريدك المسجّل هنا:</p>'
+    + '<div style="background:var(--panel2);border:1px solid var(--accent);border-radius:10px;'
+    + 'padding:12px;font-size:16px;font-weight:800;direction:ltr;color:var(--accent);'
+    + 'user-select:all;margin-bottom:14px">' + email + '</div>'
+    + '<div style="background:#3a2a12;border:1px solid #c9821f;border-radius:10px;padding:11px 13px;'
+    + 'font-size:12.5px;line-height:1.8;text-align:right;color:#ffd699;margin-bottom:16px">'
+    + '🍎 <b>لو دفعت بـ Apple Pay:</b> غيّر خانة «جهة الاتصال / البريد» في صفحة الدفع '
+    + 'إلى بريدك أعلاه — لأن Apple تضع بريدك الخاص بها تلقائياً وهو غالباً مختلف.</div>'
+    + '<button class="btn btn-primary" id="pgGo" style="width:100%">فهمت — متابعة للدفع</button>'
+    + '<button class="btn btn-ghost" id="pgCancel" style="width:100%;margin-top:8px">إلغاء</button>'
+    + '</div>';
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.querySelector('#pgCancel').onclick = close;
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.querySelector('#pgGo').onclick = () => {
+    close();
+    $('cloudMsg').textContent = 'بعد الدفع، حدّث الصفحة — إن لم يُفعّل خلال دقيقة تواصل معنا ببريدك';
+    window.open(PAYMENT_LINK, '_blank');
+  };
+}
 
 const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','extra1','info','agent','phone'];
 
