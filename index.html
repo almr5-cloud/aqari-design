@@ -320,8 +320,10 @@
           </select>
         </div>
       </div>
-      <label class="fld">معلومة إضافية (اختياري)</label>
+      <label class="fld">معلومات إضافية (اختياري)</label>
       <input type="text" id="info" placeholder="مثال: على شارعين، رقم الرخصة 7100000000" maxlength="50">
+      <div id="infoList"></div>
+      <button class="btn btn-ghost btn-sm" id="btnAddInfo" style="width:100%;margin-top:8px">➕ إضافة معلومة أخرى</button>
     </div>
 
     <div class="section">
@@ -331,8 +333,10 @@
         <div><label class="fld">دورات المياه</label><input type="text" id="baths" value="4" inputmode="numeric"></div>
         <div><label class="fld">المساحة م²</label><input type="text" id="area" value="450" inputmode="numeric"></div>
       </div>
-      <label class="fld">مواصفة إضافية (اختياري)</label>
+      <label class="fld">مواصفات إضافية (اختياري)</label>
       <input type="text" id="extra1" placeholder="مثال: مسبح خاص، مصعد، ملحق خارجي" maxlength="25">
+      <div id="specList"></div>
+      <button class="btn btn-ghost btn-sm" id="btnAddSpec" style="width:100%;margin-top:8px">➕ إضافة مواصفة أخرى</button>
     </div>
 
     <div class="section">
@@ -497,8 +501,15 @@ function featureItems(d){
   if (d.beds)  items.push({ic:'🛏️', v:d.beds,  l:'غرف نوم'});
   if (d.baths) items.push({ic:'🛁', v:d.baths, l:'دورات مياه'});
   if (d.area)  items.push({ic:'📐', v:d.area + ' م²', l:'المساحة'});
-  if (d.extra) items.push({ic:'✨', v:d.extra, l:''});
+  (d.extras || []).forEach(x => items.push({ic:'✨', v:x, l:''}));
   return items;
+}
+
+// يجمع قيم حقول القسم (الأساسي + الإضافية) غير الفارغة
+function extraVals(baseId, listId){
+  const arr = [$(baseId).value.trim()];
+  document.querySelectorAll('#' + listId + ' .extraRow').forEach(i => arr.push(i.value.trim()));
+  return arr.filter(Boolean);
 }
 
 function getData(){
@@ -512,8 +523,8 @@ function getData(){
     beds: $('beds').value.trim(),
     baths: $('baths').value.trim(),
     area: $('area').value.trim(),
-    extra: $('extra1').value.trim(),
-    info: $('info').value.trim(),
+    extras: extraVals('extra1', 'specList'),
+    info: extraVals('info', 'infoList').join('  •  '),
     agent: $('agent').value.trim(),
     phone: $('phone').value.trim(),
   };
@@ -1412,6 +1423,25 @@ $('zoom').addEventListener('input', e => {
 });
 
 $('btnSmart').onclick = smartFill;
+
+/* إضافة حقول إضافية (معلومات / مواصفات) ديناميكياً */
+function addExtraRow(listId, placeholder, maxlen){
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex; gap:6px; margin-top:6px';
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.placeholder = placeholder; inp.maxLength = maxlen;
+  inp.className = 'extraRow'; inp.style.flex = '1';
+  inp.addEventListener('input', render);
+  const del = document.createElement('button');
+  del.className = 'btn btn-ghost btn-sm'; del.textContent = '✕';
+  del.style.flexShrink = '0';
+  del.onclick = () => { row.remove(); render(); };
+  row.append(inp, del);
+  $(listId).appendChild(row);
+  inp.focus();
+}
+$('btnAddInfo').onclick = () => addExtraRow('infoList', 'معلومة إضافية', 50);
+$('btnAddSpec').onclick = () => addExtraRow('specList', 'مثال: مصعد، حديقة، مدخلين', 25);
 
 document.querySelectorAll('.color-dot').forEach(dot => dot.onclick = () => {
   document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('active'));
