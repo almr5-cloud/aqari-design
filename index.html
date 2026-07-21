@@ -251,14 +251,8 @@
         <small>JPG / PNG — صورة الفيلا أو العقار</small>
       </div>
       <input type="file" id="fileImg" accept="image/*" hidden>
-      <label class="fld">تكبير الصورة</label>
+      <label class="fld">تكبير الصورة <span style="color:var(--muted);font-weight:400">(اسحب الصورة في المعاينة لتحريكها)</span></label>
       <input type="range" id="zoom" min="100" max="300" value="100">
-      <label class="fld">السحب في المعاينة يحرّك:</label>
-      <div class="size-row" id="dragMode" style="grid-template-columns:1fr 1fr">
-        <button class="size-btn active" data-mode="img">🖼️ الصورة</button>
-        <button class="size-btn" data-mode="txt">✍️ النص</button>
-      </div>
-      <button class="btn btn-ghost btn-sm" id="btnResetPos" style="width:100%;margin-top:8px">↺ إرجاع النص للمكان الأصلي</button>
       <label class="fld">صور إضافية لقالب «معرض» (حتى 3 صور — واحدة أو أكثر في كل مرة)</label>
       <button class="btn btn-ghost" style="width:100%" id="btnExtra">⬆ رفع الصور الإضافية</button>
       <input type="file" id="fileExtra" accept="image/*" multiple hidden>
@@ -406,8 +400,6 @@ const state = {
   img: null, logo: null,
   extraImgs: [],
   zoom: 1, offX: 0, offY: 0,
-  txtX: 0, txtY: 0,
-  dragMode: 'img',
   color: '#c9a227',
 };
 
@@ -658,7 +650,6 @@ function tplModern(c, W, H, d){
   c.fillStyle = g; c.fillRect(0, 0, W, H);
 
   c.direction = 'rtl'; c.textBaseline = 'middle';
-  c.save(); c.translate(state.txtX, state.txtY);   // إزاحة النص القابلة للتحريك
 
   // شارة الحالة أعلى اليمين
   c.font = `700 ${34*s}px ${SANS}`;
@@ -798,7 +789,6 @@ function tplLuxury(c, W, H, d){
 
   // شارة الحالة فوق الصورة
   c.direction = 'rtl'; c.textBaseline = 'middle';
-  c.save(); c.translate(state.txtX, state.txtY);   // إزاحة النص القابلة للتحريك
   c.font = `700 ${30*s}px ${SANS}`;
   const bw = c.measureText(d.badge).width + 60*s;
   rr(c, (W-bw)/2, m - 40*s, bw, 58*s, 8*s);
@@ -900,7 +890,6 @@ function tplClean(c, W, H, d){
   drawCover(c, 0, 0, W, imgH);
 
   c.direction = 'rtl'; c.textBaseline = 'middle';
-  c.save(); c.translate(state.txtX, state.txtY);   // إزاحة النص القابلة للتحريك
 
   drawLogo(c, 44*s, 40*s, 120*s);
 
@@ -1008,7 +997,6 @@ function tplCard(c, W, H, d){
   c.fillStyle = 'rgba(0,0,0,0.12)'; c.fillRect(0, 0, W, H);
 
   c.direction = 'rtl'; c.textBaseline = 'middle';
-  c.save(); c.translate(state.txtX, state.txtY);   // إزاحة النص القابلة للتحريك
 
   drawLogo(c, 44*s, 40*s, 120*s);
 
@@ -1145,7 +1133,6 @@ function tplGallery(c, W, H, d){
   c.beginPath(); c.moveTo(0, yL); c.lineTo(W, yR); c.stroke();
 
   c.direction = 'rtl'; c.textBaseline = 'middle';
-  c.save(); c.translate(state.txtX, state.txtY);   // إزاحة النص القابلة للتحريك
 
   // شارة الحالة + الشعار
   c.font = `700 ${32*s}px ${SANS}`;
@@ -1301,7 +1288,6 @@ function tplStrip(c, W, H, d){
   c.fillStyle = col; c.fillRect(px - 6*s, 0, 6*s, H);
 
   c.direction = 'rtl'; c.textBaseline = 'middle';
-  c.save(); c.translate(state.txtX, state.txtY);   // إزاحة النص القابلة للتحريك
   const xr = W - 48*s;
   const innerW = stripW - 80*s;
 
@@ -1406,7 +1392,6 @@ document.querySelectorAll('#tplGrid .tpl-btn').forEach(b => b.onclick = () => {
   document.querySelectorAll('#tplGrid .tpl-btn').forEach(x => x.classList.remove('active'));
   b.classList.add('active');
   state.tpl = b.dataset.tpl;
-  state.txtX = state.txtY = 0;
   render();
 });
 
@@ -1415,7 +1400,6 @@ document.querySelectorAll('#sizeRow .size-btn').forEach(b => b.onclick = () => {
   b.classList.add('active');
   state.W = +b.dataset.w; state.H = +b.dataset.h;
   state.offX = state.offY = 0;
-  state.txtX = state.txtY = 0;
   render();
 });
 
@@ -1529,28 +1513,19 @@ function loadImage(file, key){
 /* تحريك الصورة بالسحب داخل المعاينة */
 let dragging = false, lastX = 0, lastY = 0;
 cv.addEventListener('pointerdown', e => {
-  if (state.dragMode === 'img' && !state.img) return;   // في وضع الصورة نحتاج صورة
+  if (!state.img) return;
   dragging = true; lastX = e.clientX; lastY = e.clientY;
   cv.setPointerCapture(e.pointerId);
 });
 cv.addEventListener('pointermove', e => {
   if (!dragging) return;
   const k = cv.width / cv.getBoundingClientRect().width;
-  const dx = (e.clientX - lastX) * k, dy = (e.clientY - lastY) * k;
-  if (state.dragMode === 'txt'){ state.txtX += dx; state.txtY += dy; }
-  else { state.offX += dx; state.offY += dy; }
+  state.offX += (e.clientX - lastX) * k;
+  state.offY += (e.clientY - lastY) * k;
   lastX = e.clientX; lastY = e.clientY;
   render();
 });
 cv.addEventListener('pointerup', () => dragging = false);
-
-/* اختيار وضع السحب: الصورة أو النص */
-document.querySelectorAll('#dragMode .size-btn').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#dragMode .size-btn').forEach(x => x.classList.remove('active'));
-  b.classList.add('active');
-  state.dragMode = b.dataset.mode;
-});
-$('btnResetPos').onclick = () => { state.txtX = 0; state.txtY = 0; render(); };
 
 /* التحميل — للمشتركين فقط وضمن حد الباقة الشهري */
 function download(type){
