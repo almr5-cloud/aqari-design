@@ -209,6 +209,7 @@
   .modal-back.open{display:flex}
   .modal{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:24px; width:340px; max-width:92vw}
   .modal h2{font-size:18px; margin-bottom:14px}
+  .hstep{flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--accent); color:#04241b; font-weight:900; font-size:14px; display:grid; place-items:center}
   .modal .tabs{display:flex; gap:8px; margin-bottom:6px}
   .modal .tabs button{flex:1}
   .modal .msg{font-size:12.5px; margin-top:10px; color:var(--muted); min-height:18px}
@@ -241,11 +242,42 @@
     <div>عقاري ديزاين<small>مصمم منشورات إنستقرام للوسطاء العقاريين — بخط ثمانية</small></div>
   </div>
   <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" id="btnHelp" title="كيف أستخدم المنصة؟">❓ كيف أستخدم؟</button>
     <span id="authBox" class="userbox"></span>
     <button class="btn btn-ghost" id="btnJpg">تحميل JPG</button>
     <button class="btn btn-primary" id="btnPng">⬇ تحميل الصورة PNG</button>
   </div>
 </header>
+
+<div class="modal-back" id="helpModal">
+  <div class="modal" style="width:440px;max-width:94vw">
+    <h2 style="display:flex;align-items:center;gap:8px">📖 كيف تستخدم عقاري ديزاين؟</h2>
+    <p style="font-size:13px;color:var(--muted);margin:6px 0 14px">صمّم منشور عقارك الاحترافي في دقيقة — 5 خطوات فقط:</p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <span class="hstep">1</span>
+        <div><b>الصق إعلانك أو املأ البيانات</b><br><span style="color:var(--muted);font-size:12.5px">في «✨ اللصق الذكي» الصق نص إعلانك من واتساب واضغط «تعبئة تلقائية» — أو اكتب البيانات يدوياً (النوع، السعر، الموقع، الغرف، جوالك).</span></div>
+      </div>
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <span class="hstep">2</span>
+        <div><b>ارفع صورة العقار</b><br><span style="color:var(--muted);font-size:12.5px">اضغط أو اسحب صورة الفيلا/العقار، وتقدر تكبّرها بالمنزلق وتحرّكها بالسحب داخل المعاينة.</span></div>
+      </div>
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <span class="hstep">3</span>
+        <div><b>اختر القالب واللون والمقاس</b><br><span style="color:var(--muted);font-size:12.5px">6 قوالب جاهزة، لوّنها بهويتك، واختر مربع (منشور) أو عمودي أو ستوري.</span></div>
+      </div>
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <span class="hstep">4</span>
+        <div><b>سجّل واشترك</b><br><span style="color:var(--muted);font-size:12.5px">التصميم والمعاينة مجاناً. للتحميل والحفظ: سجّل حساب واشترك بـ49 ريال/شهرياً (ادفع بنفس بريدك المسجّل).</span></div>
+      </div>
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <span class="hstep">5</span>
+        <div><b>حمّل وانشر</b><br><span style="color:var(--muted);font-size:12.5px">اضغط «تحميل PNG» أو «JPG» — والصورة جاهزة بدقة عالية للنشر على إنستقرام مباشرة.</span></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:18px" id="btnHelpClose">فهمت — يلا نصمّم! 🎨</button>
+  </div>
+</div>
 
 <main>
   <aside>
@@ -1799,6 +1831,18 @@ function openAuth(){
   $('authMsg').className = 'msg'; $('authMsg').textContent = '';
   $('authModal').classList.add('open');
 }
+/* دليل الاستخدام */
+$('btnHelp').onclick = () => $('helpModal').classList.add('open');
+$('btnHelpClose').onclick = () => $('helpModal').classList.remove('open');
+$('helpModal').addEventListener('click', e => { if (e.target === $('helpModal')) $('helpModal').classList.remove('open'); });
+// تظهر تلقائياً لأول زيارة فقط
+try {
+  if (!localStorage.getItem('aqari_seen_guide')){
+    $('helpModal').classList.add('open');
+    localStorage.setItem('aqari_seen_guide', '1');
+  }
+} catch(e) {}
+
 $('btnOpenAuth').onclick = openAuth;
 $('btnAuthClose').onclick = () => { $('authModal').classList.remove('open'); resetAuthModal(); };
 $('authModal').addEventListener('click', e => {
