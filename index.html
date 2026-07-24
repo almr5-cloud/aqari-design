@@ -281,6 +281,16 @@
       </div>
     </div>
     <button class="btn btn-primary" style="width:100%;margin-top:18px" id="btnHelpClose">فهمت — يلا نصمّم! 🎨</button>
+    <div style="text-align:center;margin-top:12px">
+      <button id="btnCancelHelp" style="background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;font-family:inherit;text-decoration:underline">طريقة إلغاء الاشتراك</button>
+    </div>
+    <div id="cancelHelpBox" style="display:none;margin-top:10px">
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:8px">لإلغاء اشتراكك: ادخل whop.com بنفس بريدك ← Orders ← اختر «عقاري ديزاين» ← Cancel. تبقى صلاحيتك حتى نهاية شهرك المدفوع.</p>
+      <video controls preload="none" poster="og-image.png" playsinline
+        style="width:100%;border-radius:12px;border:1px solid var(--border);background:#000">
+        <source src="cancel-tutorial.mp4" type="video/mp4">
+      </video>
+    </div>
   </div>
 </div>
 
@@ -1838,6 +1848,10 @@ function openAuth(){
 }
 /* دليل الاستخدام */
 $('btnHelp').onclick = () => $('helpModal').classList.add('open');
+$('btnCancelHelp').onclick = () => {
+  const box = $('cancelHelpBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+};
 $('btnHelpClose').onclick = () => $('helpModal').classList.remove('open');
 $('helpModal').addEventListener('click', e => { if (e.target === $('helpModal')) $('helpModal').classList.remove('open'); });
 // تظهر تلقائياً لأول زيارة فقط
