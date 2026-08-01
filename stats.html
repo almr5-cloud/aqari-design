@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>لوحة إحصاءات — عقاري ديزاين</title>
+<link rel="icon" type="image/png" href="logo.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  @font-face{font-family:'TS'; src:url('fonts/thmanyahsans-Regular.woff2') format('woff2'); font-weight:400}
+  @font-face{font-family:'TS'; src:url('fonts/thmanyahsans-Bold.woff2') format('woff2'); font-weight:700}
+  @font-face{font-family:'TS'; src:url('fonts/thmanyahsans-Black.woff2') format('woff2'); font-weight:900}
+  @font-face{font-family:'TD'; src:url('fonts/thmanyahserifdisplay-Black.woff2') format('woff2'); font-weight:900}
+
+  :root{--bg:#0f1219; --panel:#171c26; --panel2:#1e2430; --border:#2a3242;
+        --text:#e8ecf4; --muted:#8b94a7; --accent:#2dd4a7; --gold:#e0bb4a; --red:#e0685c}
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{font-family:'TS',sans-serif; background:var(--bg); color:var(--text); padding:22px; min-height:100vh}
+  .wrap{max-width:1000px; margin:0 auto}
+
+  header{display:flex; align-items:center; gap:13px; margin-bottom:22px}
+  header img{width:46px; height:46px; border-radius:11px}
+  header h1{font-size:21px; font-weight:900; line-height:1.3}
+  header h1 small{display:block; font-size:12px; font-weight:400; color:var(--muted)}
+  header .rf{margin-inline-start:auto; display:flex; gap:8px; align-items:center}
+  .btn{background:var(--panel2); border:1px solid var(--border); color:var(--text);
+       border-radius:10px; padding:9px 16px; font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer}
+  .btn:hover{border-color:var(--accent)}
+  .btn.p{background:linear-gradient(135deg,var(--accent),#1fb08a); color:#04241b; border:none}
+
+  .gate{max-width:380px; margin:70px auto; background:var(--panel); border:1px solid var(--border);
+        border-radius:16px; padding:26px; text-align:center}
+  .gate h2{font-size:18px; margin-bottom:8px}
+  .gate p{font-size:13px; color:var(--muted); margin-bottom:16px}
+  input{width:100%; background:var(--panel2); border:1px solid var(--border); border-radius:10px;
+        padding:11px 13px; color:var(--text); font-family:inherit; font-size:14px; outline:none; direction:ltr; text-align:center}
+  input:focus{border-color:var(--accent)}
+
+  .funnel{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px}
+  .funnel h3{font-size:15px; margin-bottom:14px; display:flex; align-items:center; gap:8px}
+  .step{display:flex; align-items:center; gap:12px; margin-bottom:10px}
+  .step .lbl{width:120px; font-size:13.5px; font-weight:700; flex-shrink:0}
+  .step .bar{flex:1; height:34px; background:var(--panel2); border-radius:9px; overflow:hidden; position:relative}
+  .step .fill{height:100%; border-radius:9px; display:flex; align-items:center; padding:0 11px;
+              font-size:14px; font-weight:900; min-width:44px; transition:width .5s}
+  .step .pct{width:58px; font-size:12px; color:var(--muted); text-align:left; flex-shrink:0}
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:11px; margin-bottom:16px}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:15px}
+  .card .k{font-size:12px; color:var(--muted); margin-bottom:6px}
+  .card .v{font-family:'TD',serif; font-size:34px; font-weight:900; line-height:1}
+  .card .s{font-size:11.5px; color:var(--muted); margin-top:5px}
+  .g{color:var(--accent)} .y{color:var(--gold)} .r{color:var(--red)}
+
+  .row{display:grid; grid-template-columns:1.4fr 1fr; gap:14px}
+  @media (max-width:760px){ .row{grid-template-columns:1fr} .step .lbl{width:88px; font-size:12px} }
+  .box{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px}
+  .box h3{font-size:15px; margin-bottom:14px}
+  .chart{display:flex; align-items:flex-end; gap:5px; height:130px}
+  .chart .c{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px}
+  .chart .b{width:100%; background:linear-gradient(180deg,var(--accent),#1a8f70); border-radius:5px 5px 0 0; min-height:3px}
+  .chart .d{font-size:9.5px; color:var(--muted); direction:ltr}
+  .chart .n{font-size:11px; font-weight:700}
+  .src{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); font-size:13.5px}
+  .src:last-child{border:none}
+  .src b{color:var(--accent)}
+  .empty{color:var(--muted); font-size:13px; text-align:center; padding:26px 0}
+  .note{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:15px;
+        font-size:13px; line-height:1.8; color:var(--muted); margin-top:16px}
+  .note b{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="gate" class="gate">
+  <h2>🔒 لوحة الإحصاءات</h2>
+  <p>أدخل مفتاح الدخول الخاص بك</p>
+  <input type="password" id="key" placeholder="مفتاح الدخول">
+  <button class="btn p" style="width:100%;margin-top:12px" id="go">دخول</button>
+  <p id="err" style="color:var(--red);margin-top:10px;min-height:16px"></p>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <img src="logo.png" alt="">
+    <h1>لوحة الإحصاءات<small>عقاري ديزاين — البيانات مباشرة من قاعدة البيانات</small></h1>
+    <div class="rf">
+      <span id="upd" style="font-size:11.5px;color:var(--muted)"></span>
+      <button class="btn" id="refresh">↻ تحديث</button>
+    </div>
+  </header>
+
+  <div class="funnel">
+    <h3>🎯 مسار العميل — آخر 7 أيام</h3>
+    <div id="funnel"></div>
+  </div>
+
+  <div class="grid" id="cards"></div>
+
+  <div class="row">
+    <div class="box">
+      <h3>📈 الزيارات — آخر 14 يوم</h3>
+      <div class="chart" id="chart"></div>
+    </div>
+    <div class="box">
+      <h3>🔗 مصادر الزيارات — 30 يوم</h3>
+      <div id="sources"></div>
+    </div>
+  </div>
+
+  <div class="note">
+    💡 <b>لتعرف أي قناة تجيب زوار</b>: أضف <code style="color:var(--gold)">?src=</code> لآخر الرابط عند المشاركة —
+    مثال: <span style="color:var(--accent);direction:ltr;display:inline-block">aqaridesign.com/?src=whatsapp</span> ·
+    <span style="color:var(--accent);direction:ltr;display:inline-block">?src=instagram</span> ·
+    <span style="color:var(--accent);direction:ltr;display:inline-block">?src=tiktok</span>
+  </div>
+</div>
+
+</div>
+
+<script>
+'use strict';
+const SUPABASE_URL = 'https://pjhafrhjmvyirrcmnrhc.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IW43eGfG4ou5GixLpvr_6g_rKPe6Mpr';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+let KEY = '';
+
+function num(n){ return (n || 0).toLocaleString('en-US'); }
+
+function drawFunnel(d){
+  const v = d.visits_7d || 0;
+  const steps = [
+    ['زيارات', v, 'var(--accent)'],
+    ['فتح التسجيل', d.auth_open_7d || 0, '#2f80ed'],
+    ['سجّلوا حساب', d.signups_7d || 0, 'var(--gold)'],
+    ['ضغطوا اشترك', d.pay_click_7d || 0, '#c47ae0'],
+    ['اشتراك نشط', d.subs_active || 0, 'var(--red)']
+  ];
+  $('funnel').innerHTML = steps.map(([lbl, n, c]) => {
+    const w = v ? Math.max(4, Math.round(n / v * 100)) : (n ? 100 : 4);
+    const pct = v ? Math.round(n / v * 100) + '%' : '—';
+    return '<div class="step"><div class="lbl">' + lbl + '</div>'
+      + '<div class="bar"><div class="fill" style="width:' + w + '%;background:' + c + ';color:#0b0d12">' + num(n) + '</div></div>'
+      + '<div class="pct">' + pct + '</div></div>';
+  }).join('');
+}
+
+function drawCards(d){
+  const c = [
+    ['زيارات اليوم', num(d.visits_today), '', 'g'],
+    ['زيارات 7 أيام', num(d.visits_7d), 'إجمالي: ' + num(d.visits_total), 'g'],
+    ['حسابات جديدة', num(d.signups_7d), 'إجمالي: ' + num(d.signups_total), 'y'],
+    ['اشتراكات نشطة', num(d.subs_active), '', 'y'],
+    ['تحميلات 7 أيام', num(d.downloads_7d), 'إجمالي: ' + num(d.downloads_total), ''],
+    ['وصلوا لبوابة الدفع', num(d.paywall_7d), 'آخر 7 أيام', 'r']
+  ];
+  $('cards').innerHTML = c.map(([k, v, s, cl]) =>
+    '<div class="card"><div class="k">' + k + '</div><div class="v ' + cl + '">' + v + '</div>'
+    + (s ? '<div class="s">' + s + '</div>' : '') + '</div>').join('');
+}
+
+function drawChart(daily){
+  if (!daily || !daily.length){ $('chart').innerHTML = '<div class="empty">لا توجد زيارات بعد</div>'; return; }
+  const max = Math.max(...daily.map(x => x.n), 1);
+  $('chart').innerHTML = daily.map(x =>
+    '<div class="c"><div class="n">' + x.n + '</div>'
+    + '<div class="b" style="height:' + Math.round(x.n / max * 88) + '%"></div>'
+    + '<div class="d">' + x.d + '</div></div>').join('');
+}
+
+function drawSources(s){
+  if (!s || !s.length){ $('sources').innerHTML = '<div class="empty">لا توجد بيانات بعد</div>'; return; }
+  $('sources').innerHTML = s.map(x =>
+    '<div class="src"><span>' + x.src + '</span><b>' + num(x.n) + '</b></div>').join('');
+}
+
+async function load(){
+  const { data, error } = await sb.rpc('get_stats', { p_key: KEY });
+  if (error) return { error: error.message };
+  return data;
+}
+
+async function show(){
+  const d = await load();
+  if (!d || d.error){
+    $('err').textContent = d && d.error === 'unauthorized' ? 'المفتاح غير صحيح' : ('خطأ: ' + (d ? d.error : 'تعذّر الجلب'));
+    return false;
+  }
+  $('gate').style.display = 'none';
+  $('app').style.display = 'block';
+  drawFunnel(d); drawCards(d); drawChart(d.daily); drawSources(d.sources);
+  $('upd').textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA');
+  return true;
+}
+
+$('go').onclick = async () => {
+  KEY = $('key').value.trim();
+  $('err').textContent = 'جارٍ التحقق…';
+  if (await show()) localStorage.setItem('aqari_stats_key', KEY);
+};
+$('key').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').click(); });
+$('refresh').onclick = show;
+
+// دخول تلقائي بالمفتاح المحفوظ أو من الرابط
+(function(){
+  const urlKey = new URLSearchParams(location.search).get('key');
+  const saved = urlKey || localStorage.getItem('aqari_stats_key');
+  if (saved){ KEY = saved; $('key').value = saved; show(); }
+})();
+</script>
+</body>
+</html>

@@ -1780,6 +1780,16 @@ const sb = (cloudConfigured && window.supabase)
 let user = null;
 let authMode = 'login';
 
+/* ==================== تتبّع الزوار (للوحة الإحصاءات) ==================== */
+function track(kind){
+  if (!sb) return;
+  try {
+    const src = new URLSearchParams(location.search).get('src') || '';
+    sb.from('events').insert({ kind, src: src.slice(0, 30) }).then(() => {}, () => {});
+  } catch(e) {}
+}
+track('visit');
+
 /* ==================== الاشتراك إلزامي: لا خطة مجانية ==================== */
 /* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
 const PAYMENT_LINK = 'https://whop.com/checkout/plan_wzMYLXlMcIzes/';
@@ -1797,6 +1807,7 @@ function isPro(){
 function requirePro(actionName){
   if (!sb) return true;               // لا سحابة مضبوطة = لا بوابة
   if (isPro()) return true;
+  track('paywall');
   if (!user){
     openAuth();
     const msg = $('authMsg');
@@ -1877,6 +1888,7 @@ function showPayGuard(){
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
   ov.querySelector('#pgGo').onclick = () => {
     close();
+    track('pay_click');
     $('cloudMsg').textContent = 'بعد الدفع، حدّث الصفحة — إن لم يُفعّل خلال دقيقة تواصل معنا ببريدك';
     window.open(PAYMENT_LINK, '_blank');
   };
@@ -1923,6 +1935,7 @@ function cloudUI(){
 function openAuth(){
   $('authMsg').className = 'msg'; $('authMsg').textContent = '';
   $('authModal').classList.add('open');
+  track('auth_open');
 }
 /* دليل الاستخدام */
 $('btnHelp').onclick = () => $('helpModal').classList.add('open');
