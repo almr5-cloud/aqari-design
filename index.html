@@ -1740,11 +1740,16 @@ function download(type){
   a.download = title.replace(/\s+/g, '-') + (type === 'jpg' ? '.jpg' : '.png');
   a.href = type === 'jpg' ? cv.toDataURL('image/jpeg', 0.92) : cv.toDataURL('image/png');
   a.click();
-  // تسجيل التحميل في العداد الشهري
+  // تسجيل التحميل في العداد الشهري (مع إظهار أي خطأ بدل تجاهله)
   if (sb && user && isPro()){
     downloadsCount++;
     updatePlanUI();
-    sb.from('downloads').insert({ user_id: user.id }).then(() => {});
+    sb.from('downloads').insert({ user_id: user.id }).then(({ error }) => {
+      if (error){
+        console.warn('تعذّر تسجيل التحميل:', error.message);
+        $('cloudMsg').textContent = '⚠️ تم التحميل، لكن تعذّر تسجيله في عدّاد حسابك';
+      }
+    });
   }
 }
 $('btnPng').onclick = () => download('png');
