@@ -657,31 +657,49 @@ function smartFill(){
   const lines = clean.split(/\n+/).map(l => l.trim()).filter(l => l.length > 1);
   const filled = [];
   let m;
+  // تفريغ الحقول الإضافية السابقة حتى لا تتكرر عند إعادة اللصق
+  $('infoList').innerHTML = '';
+  $('specList').innerHTML = '';
 
-  // الحالة
-  if (/للإيجار|للايجار|إيجار|ايجار/.test(clean)) $('badge').value = 'للإيجار';
-  else if (/استثمار/.test(clean)) $('badge').value = 'للاستثمار';
+  // الحالة — يفهم صيغاً متعددة
+  if (/للإيجار|للايجار|إيجار|ايجار|للتأجير|للايجارالسنوي|سنوي/.test(clean)) $('badge').value = 'للإيجار';
+  else if (/استثمار|للاستثمار/.test(clean)) $('badge').value = 'للاستثمار';
+  else if (/تم\s*البيع|مباع/.test(clean)) $('badge').value = 'تم البيع';
+  else if (/عرض\s*خاص|تخفيض/.test(clean)) $('badge').value = 'عرض خاص';
   else $('badge').value = 'للبيع';
   filled.push('الحالة');
 
-  // نوع العقار
+  // نوع العقار — مرادفات وأخطاء إملائية شائعة
   const typeMap = [
-    [/فيلا|فله|فلة/, 'فيلا'], [/شقه|شقة/, 'شقة'], [/دوبلكس|دبلكس/, 'دوبلكس'],
-    [/ارض|أرض/, 'أرض'], [/عمارة|عماره/, 'عمارة'], [/استراحة|استراحه/, 'استراحة'],
-    [/شاليه/, 'شاليه'], [/مزرعة|مزرعه/, 'مزرعة'], [/محل/, 'محل تجاري'], [/مكتب/, 'مكتب']
+    [/دوبلكس|دبلكس|دبلوكس|دوبلكسات|دبلكسات/, 'دوبلكس'],
+    [/فيلا|فله|فلة|فيلة|فلل|فيلل/, 'فيلا'],
+    [/شق[ةه]|شقق|استوديو|ستوديو/, 'شقة'],
+    [/أرض|ارض|اراضي|أراضي|قطعة\s*أرض|قطعه/, 'أرض'],
+    [/عمار[ةه]|عمائر|برج|مبنى|مبني/, 'عمارة'],
+    [/استراح[ةه]|استراحات/, 'استراحة'],
+    [/شاليه|شاليهات/, 'شاليه'],
+    [/مزرع[ةه]|مزارع/, 'مزرعة'],
+    [/محل|محلات|معرض\s*تجاري|صالة\s*عرض/, 'محل تجاري'],
+    [/مكتب|مكاتب|مقر\s*إداري/, 'مكتب'],
+    [/بيت|منزل|دور\s|دور$|بيوت/, 'فيلا']
   ];
   for (const [re, v] of typeMap){
     if (re.test(clean)){ $('ptype').value = v; filled.push('النوع'); break; }
   }
 
-  // الموقع: حي / مخطط + ما بعده
-  const locM = clean.match(/((?:حي|مخطط)\s+[^\n,،]+)/);
+  // الموقع — حي/مخطط/ضاحية/شارع + أسماء المدن
+  const CITIES = 'الرياض|جدة|جده|مكة|مكه|المدينة|المدينه|الدمام|الخبر|الظهران|الأحساء|الاحساء|الهفوف|القطيف|الجبيل|بريدة|بريده|القصيم|عنيزة|حائل|تبوك|أبها|ابها|خميس\\s*مشيط|نجران|جازان|جيزان|الطائف|ينبع|الخرج|الباحة|عرعر|سكاكا|القريات|رابغ|الزلفي|المجمعة';
   let locVal = '';
-  if (locM){
+  const locM = clean.match(new RegExp('((?:حي|مخطط|ضاحية|ضاحيه|شارع|طريق|مجمع)\\s+[^\\n,،|]{2,28})'));
+  const cityM = clean.match(new RegExp('(' + CITIES + ')'));
+  if (locM && cityM){
+    locVal = (cityM[1] + ' — ' + locM[1].trim()).replace(/\s+/g, ' ');
+  } else if (locM){
     locVal = locM[1].trim().replace(/\s+/g, ' ');
-    $('loc').value = locVal.slice(0, 40);
-    filled.push('الموقع');
+  } else if (cityM){
+    locVal = cityM[1];
   }
+  if (locVal){ $('loc').value = locVal.slice(0, 40); filled.push('الموقع'); }
 
   // العنوان: أول سطر يذكر نوع العقار (بعد إزالة الموقع منه)
   const typeWords = /فيلا|فله|شقه|شقة|دوبلكس|دبلكس|ارض|أرض|عمارة|عماره|استراحة|استراحه|شاليه|مزرعة|مزرعه|محل|مكتب|دور/;
@@ -695,52 +713,102 @@ function smartFill(){
     filled.push('العنوان');
   }
 
-  // المساحة
-  const areaM = clean.match(/مساح[ةه]?\S*\s*:?\s*([\d.,]+)/) || clean.match(/([\d.,]+)\s*م(?:تر)?[²2]?\b/);
+  // المساحة — يفضّل مسطح البناء ثم مساحة الأرض ثم أي رقم بالمتر
+  const areaM = clean.match(/مسط[حه]\s*(?:البناء|بناء)?\s*:?\s*([\d.,]+)/)
+    || clean.match(/مساح[ةه]\s*(?:الأرض|الارض|البناء)?\s*:?\s*([\d.,]+)/)
+    || clean.match(/([\d.,]+)\s*م(?:تر)?\s*(?:مربع)?[²2]?\b/);
   if (areaM){ $('area').value = areaM[1].replace(/[.,]/g, ''); filled.push('المساحة'); }
 
-  // غرف النوم ودورات المياه — يجمع كل الإشارات في النص (كل الأدوار)
+  // غرف النوم — يجمع كل الإشارات (كل الأدوار)، ويفهم «غرفتين» و«ماستر»
   let beds = 0, baths = 0;
-  const bedRe = /(\S+)?\s*(غرفتين|غرفة|غرف)\s*نوم/g;
+  const bedRe = /(\S+)?\s*(غرفتين|غرفتان|غرف[ةه]|غرف)\s*(?:نوم|النوم|ماستر)?/g;
   while ((m = bedRe.exec(clean)) !== null){
-    if (m[2] === 'غرفتين') beds += 2;
+    const w = m[2];
+    if (/غرفتين|غرفتان/.test(w)) beds += 2;
     else beds += arNum(m[1]) || 1;
   }
-  const bathRe = /(\S+)?\s*(دورتين|دورة|دورات)\s*(مياه|المياه)/g;
+  // دورات المياه — دورة/دورات/حمام/حمامات/دورتين/حمامين
+  const bathRe = /(\S+)?\s*(دورتين|دورتان|دور[ةه]|دورات|حمامين|حمامان|حمامات|حمام)\s*(?:مياه|المياه)?/g;
   while ((m = bathRe.exec(clean)) !== null){
-    if (m[2] === 'دورتين') baths += 2;
+    const w = m[2];
+    if (/دورتين|دورتان|حمامين|حمامان/.test(w)) baths += 2;
     else baths += arNum(m[1]) || 1;
   }
   if (beds){ $('beds').value = beds; filled.push('غرف النوم (' + beds + ')'); }
   if (baths){ $('baths').value = baths; filled.push('دورات المياه (' + baths + ')'); }
 
-  // السعر: "السعر ٥٧٠ الف" أو "مليون ونص" التقريبية غير مدعومة — الأرقام فقط
-  let priceM = clean.match(/سعر[^0-9\n]*([\d.,]+)\s*(الف|ألف|مليون)?/);
-  if (!priceM) priceM = clean.match(/([\d.,]+)\s*(الف|ألف|مليون)/);
+  // السعر — السعر/سعر/بسعر/مطلوب/على السوم + الف/ألف/ك/مليون
+  let priceM = clean.match(/(?:السعر|سعر|بسعر|المطلوب|مطلوب|السوم)\s*:?\s*([\d.,]+)\s*(ألف|الف|مليون|ك|k)?/i);
+  if (!priceM) priceM = clean.match(/([\d.,]+)\s*(ألف|الف|مليون|ك|k)\s*(?:ريال|ر\.س)?/i);
+  if (!priceM) priceM = clean.match(/([\d.,]+)\s*(?:ريال|ر\.س|sar)/i);
   if (priceM){
     let n = parseFloat(priceM[1].replace(/,/g, ''));
-    if (priceM[2] && /الف|ألف/.test(priceM[2])) n *= 1000;
-    if (priceM[2] === 'مليون') n *= 1000000;
+    const unit = (priceM[2] || '').toLowerCase();
+    if (/ألف|الف|ك|k/.test(unit)) n *= 1000;
+    if (unit === 'مليون') n *= 1000000;
     if (n){ $('price').value = Math.round(n); filled.push('السعر'); }
   }
 
-  // معلومة إضافية
-  if (/شامل/.test(clean)){ $('info').value = 'السعر شامل'; filled.push('معلومة إضافية'); }
-
-  // مواصفة إضافية: أول ميزة مميزة تُذكر
-  const extraMap = [
-    [/دورين/, 'دورين'], [/مسبح/, 'مسبح'], [/مصعد/, 'مصعد'], [/كراج/, 'كراج'],
-    [/ملحق/, 'ملحق'], [/حوش/, 'حوش'], [/مجلس/, 'مجلس رجال'], [/مستودع/, 'مستودع']
-  ];
-  for (const [re, v] of extraMap){
-    if (re.test(clean)){ $('extra1').value = v; filled.push('مواصفة إضافية'); break; }
+  // معلومات إضافية — السعر شامل / الصك / الواجهة / الرخصة
+  const infos = [];
+  if (/شامل/.test(clean)) infos.push('السعر شامل');
+  if (/صك\s*(?:حر|مستقل|إلكتروني)?/.test(clean)) infos.push('صك مستقل');
+  const faceM = clean.match(/واجه[ةه]\s*(شمالية|شماليه|جنوبية|جنوبيه|شرقية|شرقيه|غربية|غربيه)/);
+  if (faceM) infos.push('واجهة ' + faceM[1]);
+  if (/شارعين|زاوية|زاويه/.test(clean)) infos.push('على شارعين');
+  const licM = clean.match(/(?:رخصة|ترخيص|رخصه)\s*(?:فال|إعلان)?\s*:?\s*(\d{6,})/);
+  if (licM) infos.push('رخصة ' + licM[1]);
+  if (infos.length){
+    $('info').value = infos[0].slice(0, 50);
+    infos.slice(1, 3).forEach(v => addExtraRow('infoList', 'معلومة إضافية', 50, v));
+    filled.push('معلومات إضافية (' + infos.length + ')');
   }
 
-  // الجوال واسم الوسيط
-  const phM = clean.match(/(05\d{8})/);
-  if (phM){ $('phone').value = phM[1]; filled.push('الجوال'); }
-  const agM = clean.match(/\(\s*([^()\n]{3,30})\s*\)/);
-  if (agM){ $('agent').value = agM[1].trim().slice(0, 35); filled.push('اسم الوسيط'); }
+  // مواصفات إضافية — يعبّي أول ثلاث مزايا موجودة
+  const extraMap = [
+    [/مسبح/, 'مسبح'], [/مصعد/, 'مصعد'], [/دورين|دوريين/, 'دورين'],
+    [/ملحق/, 'ملحق خارجي'], [/كراج|كراچ|مواقف/, 'كراج'], [/حوش/, 'حوش'],
+    [/مجلس/, 'مجلس رجال'], [/حديق[ةه]/, 'حديقة'], [/مستودع/, 'مستودع'],
+    [/مفروش[ةه]?|مؤثث[ةه]?/, 'مفروشة'], [/سطح|روف/, 'سطح'],
+    [/مطبخ\s*راكب/, 'مطبخ راكب'], [/مدخلين|مدخلان/, 'مدخلين'],
+    [/صال[ةه]/, 'صالة واسعة'], [/بلكون[ةه]|شرف[ةه]/, 'بلكونة']
+  ];
+  const foundExtras = [];
+  for (const [re, v] of extraMap){
+    if (re.test(clean)) foundExtras.push(v);
+    if (foundExtras.length >= 3) break;
+  }
+  if (foundExtras.length){
+    $('extra1').value = foundExtras[0];
+    foundExtras.slice(1).forEach(v => addExtraRow('specList', 'مواصفة إضافية', 25, v));
+    filled.push('مواصفات (' + foundExtras.length + ')');
+  }
+
+  // الجوال — يقبل 05xxxxxxxx و 5xxxxxxxx و 966xxxxxxxxx و +966
+  let phone = '';
+  let pm = clean.match(/(?:\+?966|00966)\s*(5\d{8})/);
+  if (pm) phone = '0' + pm[1];
+  if (!phone){ pm = clean.match(/\b(05\d{8})\b/); if (pm) phone = pm[1]; }
+  if (!phone){ pm = clean.match(/\b(5\d{8})\b/); if (pm) phone = '0' + pm[1]; }
+  if (phone){ $('phone').value = phone; filled.push('الجوال'); }
+
+  // اسم الوسيط — بين قوسين، أو بعد «المعلن/الوسيط/المسوق»، أو سطر يبدأ بـ«أبو»
+  let agent = '';
+  let am = clean.match(/\(\s*([^()\n\d]{3,30})\s*\)/);
+  if (am) agent = am[1];
+  if (!agent){
+    am = clean.match(/(?:المعلن|الوسيط|المسوق|باسم|اسم\s*المعلن)\s*:?\s*([^\n\d،,|]{3,30})/);
+    if (am) agent = am[1];
+  }
+  if (!agent){
+    const abu = lines.find(l => /^(أبو|ابو|أم|ام)\s+\S+/.test(l.trim()) && l.trim().length < 30);
+    if (abu) agent = abu.trim();
+  }
+  if (!agent){
+    const off = clean.match(/((?:مكتب|شركة|مؤسسة)\s+[^\n،,|]{2,28})/);
+    if (off) agent = off[1];
+  }
+  if (agent){ $('agent').value = agent.trim().slice(0, 35); filled.push('اسم الوسيط'); }
 
   render();
   $('smartMsg').textContent = filled.length > 1
@@ -1525,12 +1593,13 @@ $('zoom').addEventListener('input', e => {
 $('btnSmart').onclick = smartFill;
 
 /* إضافة حقول إضافية (معلومات / مواصفات) ديناميكياً */
-function addExtraRow(listId, placeholder, maxlen){
+function addExtraRow(listId, placeholder, maxlen, value){
   const row = document.createElement('div');
   row.style.cssText = 'display:flex; gap:6px; margin-top:6px';
   const inp = document.createElement('input');
   inp.type = 'text'; inp.placeholder = placeholder; inp.maxLength = maxlen;
   inp.className = 'extraRow'; inp.style.flex = '1';
+  if (value) inp.value = value;
   inp.addEventListener('input', render);
   const del = document.createElement('button');
   del.className = 'btn btn-ghost btn-sm'; del.textContent = '✕';

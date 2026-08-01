@@ -13,3 +13,11 @@ fonts/__MACOSX/
 
 # صور الاختبار
 صورة عقار.png
+
+# ملفات العمل التسويقية (لا تُنشر على الموقع)
+_brochure.html
+_carousel.html
+before-design.png
+after-design.png
+كاروسيل/
+*.pdf
