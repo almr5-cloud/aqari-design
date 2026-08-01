@@ -1785,7 +1785,16 @@ function track(kind){
   if (!sb) return;
   try {
     const src = new URLSearchParams(location.search).get('src') || '';
-    sb.from('events').insert({ kind, src: src.slice(0, 30) }).then(() => {}, () => {});
+    const device = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'جوال' : 'كمبيوتر';
+    let ref = '';
+    if (document.referrer){
+      try {
+        const h = new URL(document.referrer).hostname.replace(/^www\./, '');
+        if (h && h !== location.hostname) ref = h;
+      } catch(e) {}
+    }
+    sb.from('events').insert({ kind, src: src.slice(0, 30), device, ref: ref.slice(0, 40) })
+      .then(() => {}, () => {});
   } catch(e) {}
 }
 track('visit');

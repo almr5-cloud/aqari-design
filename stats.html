@@ -107,6 +107,10 @@
     <div class="box">
       <h3>🔗 مصادر الزيارات — 30 يوم</h3>
       <div id="sources"></div>
+      <h3 style="margin-top:18px">📱 الأجهزة</h3>
+      <div id="devices"></div>
+      <h3 style="margin-top:18px">🌐 جاؤوا من</h3>
+      <div id="referrers"></div>
     </div>
   </div>
 
@@ -171,9 +175,10 @@ function drawChart(daily){
     + '<div class="d">' + x.d + '</div></div>').join('');
 }
 
-function drawSources(s){
-  if (!s || !s.length){ $('sources').innerHTML = '<div class="empty">لا توجد بيانات بعد</div>'; return; }
-  $('sources').innerHTML = s.map(x =>
+function drawList(elId, arr){
+  const el = $(elId);
+  if (!arr || !arr.length){ el.innerHTML = '<div class="empty">لا توجد بيانات بعد</div>'; return; }
+  el.innerHTML = arr.map(x =>
     '<div class="src"><span>' + x.src + '</span><b>' + num(x.n) + '</b></div>').join('');
 }
 
@@ -191,7 +196,10 @@ async function show(){
   }
   $('gate').style.display = 'none';
   $('app').style.display = 'block';
-  drawFunnel(d); drawCards(d); drawChart(d.daily); drawSources(d.sources);
+  drawFunnel(d); drawCards(d); drawChart(d.daily);
+  drawList('sources', d.sources);
+  drawList('devices', d.devices);
+  drawList('referrers', d.referrers);
   $('upd').textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA');
   return true;
 }
