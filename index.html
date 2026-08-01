@@ -1812,7 +1812,9 @@ function requirePro(actionName){
 function updatePlanUI(){
   const line = $('planLine'), btn = $('btnUpgrade');
   if (isPro()){
-    line.innerHTML = '⭐ اشتراكك: <b>نشط</b> — حمّلت ' + downloadsCount + ' من ' + PRO_MONTHLY_DOWNLOADS + ' تصميماً هذا الشهر';
+    const left = Math.max(0, PRO_MONTHLY_DOWNLOADS - downloadsCount);
+    line.innerHTML = '⭐ اشتراكك: <b>نشط</b> — باقي لك <b style="color:var(--accent)">' + left + '</b> من '
+      + PRO_MONTHLY_DOWNLOADS + ' تصميماً هذا الشهر';
     btn.style.display = 'none';
   } else {
     line.textContent = 'لا يوجد اشتراك نشط — اشترك لتتمكن من تحميل وحفظ التصاميم';
