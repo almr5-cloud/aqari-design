@@ -69,6 +69,18 @@
   .note{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:15px;
         font-size:13px; line-height:1.8; color:var(--muted); margin-top:16px}
   .note b{color:var(--text)}
+
+  /* فحص SEO / AEO */
+  .audit{margin-top:16px}
+  .audit .hd{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+  .audit .hd h3{font-size:16px}
+  .score{margin-inline-start:auto; font-family:'TD',serif; font-size:26px; font-weight:900}
+  .chk{display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-bottom:1px solid var(--border)}
+  .chk:last-child{border:none}
+  .chk .ic{flex-shrink:0; width:20px; font-size:14px; text-align:center; line-height:1.6}
+  .chk .tx{flex:1; font-size:13.5px; line-height:1.55}
+  .chk .tx small{display:block; color:var(--muted); font-size:11.5px; margin-top:2px}
+  .ok{color:var(--accent)} .warn{color:var(--gold)} .bad{color:var(--red)}
 </style>
 </head>
 <body>
@@ -111,6 +123,17 @@
       <div id="devices"></div>
       <h3 style="margin-top:18px">🌐 جاؤوا من</h3>
       <div id="referrers"></div>
+    </div>
+  </div>
+
+  <div class="row audit">
+    <div class="box">
+      <div class="hd"><h3>🔍 صحة SEO — ظهورك في جوجل</h3><span class="score" id="seoScore">…</span></div>
+      <div id="seoList"><div class="empty">جارٍ الفحص…</div></div>
+    </div>
+    <div class="box">
+      <div class="hd"><h3>🤖 صحة AEO — ظهورك في الذكاء الاصطناعي</h3><span class="score" id="aeoScore">…</span></div>
+      <div id="aeoList"><div class="empty">جارٍ الفحص…</div></div>
     </div>
   </div>
 
@@ -188,6 +211,129 @@ async function load(){
   return data;
 }
 
+/* ==================== فحص صحة SEO و AEO (مباشر من الموقع) ==================== */
+const BASE = location.protocol === 'file:' ? 'https://aqaridesign.com/' : '/';
+
+async function grab(path){
+  try {
+    const r = await fetch(BASE + path, { cache: 'no-store' });
+    return { ok: r.ok, status: r.status, text: r.ok ? await r.text() : '' };
+  } catch(e){ return { ok: false, status: 0, text: '', err: e.message }; }
+}
+
+function row(state, title, detail){
+  const ic = state === 'ok' ? '✅' : state === 'warn' ? '⚠️' : '❌';
+  return '<div class="chk"><div class="ic ' + state + '">' + ic + '</div>'
+       + '<div class="tx">' + title + (detail ? '<small>' + detail + '</small>' : '') + '</div></div>';
+}
+
+function renderAudit(elId, scoreId, checks){
+  const pass = checks.filter(c => c[0] === 'ok').length;
+  const total = checks.length;
+  const el = $(scoreId);
+  el.textContent = pass + '/' + total;
+  el.className = 'score ' + (pass === total ? 'ok' : pass >= total * 0.7 ? 'warn' : 'bad');
+  $(elId).innerHTML = checks.map(c => row(c[0], c[1], c[2])).join('');
+}
+
+async function runAudit(){
+  const [home, robots, sitemap, llms, about] = await Promise.all([
+    grab(''), grab('robots.txt'), grab('sitemap.xml'), grab('llms.txt'), grab('about.html')
+  ]);
+
+  const doc = home.ok ? new DOMParser().parseFromString(home.text, 'text/html') : null;
+  const meta = n => doc ? (doc.querySelector('meta[name="' + n + '"]')?.content || '') : '';
+  const prop = n => doc ? (doc.querySelector('meta[property="' + n + '"]')?.content || '') : '';
+  const title = doc ? (doc.querySelector('title')?.textContent || '') : '';
+  const desc = meta('description');
+
+  // ===== SEO =====
+  const seo = [];
+  seo.push(title && title.length >= 25 && title.length <= 70
+    ? ['ok', 'عنوان الصفحة مضبوط', 'الطول ' + title.length + ' حرفاً — المثالي 25-70']
+    : [title ? 'warn' : 'bad', 'عنوان الصفحة', title ? ('الطول ' + title.length + ' — يُفضّل 25-70') : 'غير موجود']);
+
+  seo.push(desc && desc.length >= 110 && desc.length <= 175
+    ? ['ok', 'وصف Meta مضبوط', 'الطول ' + desc.length + ' حرفاً']
+    : [desc ? 'warn' : 'bad', 'وصف Meta', desc ? ('الطول ' + desc.length + ' — المثالي 110-175') : 'غير موجود']);
+
+  seo.push(doc && doc.querySelector('link[rel="canonical"]')
+    ? ['ok', 'رابط canonical موجود', 'يمنع تكرار المحتوى']
+    : ['bad', 'رابط canonical', 'غير موجود']);
+
+  seo.push(robots.ok ? ['ok', 'ملف robots.txt', 'يعمل — يوجّه محركات البحث']
+                     : ['bad', 'ملف robots.txt', 'غير متاح']);
+
+  const urls = (sitemap.text.match(/<loc>/g) || []).length;
+  seo.push(sitemap.ok ? ['ok', 'خريطة الموقع sitemap.xml', urls + ' صفحة مُدرجة']
+                      : ['bad', 'خريطة الموقع', 'غير متاحة']);
+
+  seo.push(prop('og:image') && prop('og:title')
+    ? ['ok', 'معاينة المشاركة (واتساب/تويتر)', 'صورة وعنوان جاهزان']
+    : ['bad', 'معاينة المشاركة', 'وسوم Open Graph ناقصة']);
+
+  seo.push(doc && doc.querySelector('meta[name="twitter:card"]')
+    ? ['ok', 'بطاقة تويتر', 'summary_large_image'] : ['warn', 'بطاقة تويتر', 'غير موجودة']);
+
+  seo.push(doc && doc.documentElement.lang === 'ar' && doc.documentElement.dir === 'rtl'
+    ? ['ok', 'اللغة والاتجاه', 'عربي RTL — مضبوط']
+    : ['warn', 'اللغة والاتجاه', 'يُفضّل lang="ar" و dir="rtl"']);
+
+  seo.push(location.protocol === 'file:' || location.protocol === 'https:'
+    ? ['ok', 'اتصال آمن HTTPS', 'القفل مفعّل'] : ['bad', 'اتصال آمن HTTPS', 'غير مفعّل']);
+
+  seo.push(doc && doc.querySelector('meta[name="google-site-verification"]')
+    ? ['ok', 'مربوط بـ Search Console', 'وسم التحقق موجود']
+    : ['warn', 'Search Console', 'وسم التحقق غير موجود']);
+
+  renderAudit('seoList', 'seoScore', seo);
+
+  // ===== AEO =====
+  const aeo = [];
+  const ld = doc ? [...doc.querySelectorAll('script[type="application/ld+json"]')] : [];
+  let types = [];
+  ld.forEach(b => { try {
+    const j = JSON.parse(b.textContent);
+    (j['@graph'] || [j]).forEach(x => x['@type'] && types.push(x['@type']));
+  } catch(e){} });
+
+  aeo.push(llms.ok ? ['ok', 'ملف llms.txt', 'ملخص منظّم لنماذج الذكاء الاصطناعي']
+                   : ['bad', 'ملف llms.txt', 'غير متاح']);
+
+  aeo.push(ld.length ? ['ok', 'بيانات منظّمة JSON-LD', types.join(' · ')]
+                     : ['bad', 'بيانات منظّمة', 'غير موجودة']);
+
+  aeo.push(types.includes('FAQPage')
+    ? ['ok', 'أسئلة شائعة منظّمة (FAQ)', 'محركات الإجابة تقتبس منها']
+    : ['bad', 'أسئلة شائعة منظّمة', 'غير موجودة']);
+
+  aeo.push(types.some(t => /SoftwareApplication|WebApplication|Product/.test(t))
+    ? ['ok', 'بيانات المنتج والسعر', 'نوع التطبيق والسعر معرّفان']
+    : ['warn', 'بيانات المنتج', 'غير معرّفة']);
+
+  let words = 0;
+  if (about.ok){
+    const ad = new DOMParser().parseFromString(about.text, 'text/html');
+    words = (ad.body.innerText || ad.body.textContent || '').trim().split(/\s+/).length;
+  }
+  aeo.push(about.ok && words >= 300
+    ? ['ok', 'صفحة محتوى نصية', words + ' كلمة — مادة كافية للاقتباس']
+    : [about.ok ? 'warn' : 'bad', 'صفحة محتوى نصية',
+       about.ok ? (words + ' كلمة — يُفضّل 300+') : 'about.html غير متاحة']);
+
+  const bots = ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended', 'OAI-SearchBot', 'Applebot-Extended'];
+  const allowed = bots.filter(b => new RegExp(b, 'i').test(robots.text));
+  aeo.push(allowed.length >= 4
+    ? ['ok', 'زواحف الذكاء الاصطناعي مسموحة', allowed.length + ' من ' + bots.length + ': ' + allowed.slice(0,3).join('، ') + '…']
+    : ['warn', 'زواحف الذكاء الاصطناعي', allowed.length + ' فقط مسموح — يُفضّل السماح لها كلها']);
+
+  aeo.push(desc && /منصة|تصميم|عقار/.test(desc)
+    ? ['ok', 'وصف واضح وقابل للاقتباس', 'يشرح ما هو المنتج بوضوح']
+    : ['warn', 'وضوح الوصف', 'يُفضّل وصف تعريفي مباشر']);
+
+  renderAudit('aeoList', 'aeoScore', aeo);
+}
+
 async function show(){
   const d = await load();
   if (!d || d.error){
@@ -201,6 +347,7 @@ async function show(){
   drawList('devices', d.devices);
   drawList('referrers', d.referrers);
   $('upd').textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA');
+  runAudit();
   return true;
 }
 
