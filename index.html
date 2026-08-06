@@ -1873,7 +1873,8 @@ function track(kind){
         if (h && h !== location.hostname) ref = h;
       } catch(e) {}
     }
-    sb.from('events').insert({ kind, src: src.slice(0, 30), device, ref: ref.slice(0, 40) })
+    const uid = (typeof user !== 'undefined' && user) ? user.id : null;
+    sb.from('events').insert({ kind, src: src.slice(0, 30), device, ref: ref.slice(0, 40), user_id: uid })
       .then(() => {}, () => {});
   } catch(e) {}
 }
@@ -2270,13 +2271,13 @@ $('btnSaveDesign').onclick = async () => {
   const { data: { session } } = await sb.auth.getSession();
   user = session ? session.user : null;
   cloudUI();
-  if (user) afterLogin();
+  if (user){ afterLogin(); track('seen'); }   // تسجيل حضور العميل (لتحديث «آخر دخول» تلقائياً)
   sb.auth.onAuthStateChange((event, s) => {
     const prev = user ? user.id : null;
     user = s ? s.user : null;
     cloudUI();
     if (event === 'PASSWORD_RECOVERY'){ openRecovery(); return; }
-    if (user && user.id !== prev) afterLogin();
+    if (user && user.id !== prev){ afterLogin(); track('seen'); }
   });
 })();
 </script>
