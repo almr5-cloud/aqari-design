@@ -289,6 +289,14 @@
     aside{width:100%; order:1; overflow:visible}
     .stage{order:2; padding:14px}
     canvas{max-height:70vh}
+    /* على الجوال: أيقونة دائرية صغيرة لا تغطي أزرار الصفحة ولا تُقص */
+    .fab{
+      width:52px; height:52px; padding:0; border-radius:50%;
+      bottom:14px; right:14px; z-index:45;
+      justify-content:center; font-size:22px; line-height:1;
+      box-shadow:0 6px 18px #000a;
+    }
+    .fab .fab-t{display:none}
   }
 </style>
 </head>
@@ -308,7 +316,7 @@
   </div>
 </header>
 
-<button class="fab" id="btnSupport" title="خدمة العملاء">💬 مساعدة</button>
+<button class="fab" id="btnSupport" title="خدمة العملاء" aria-label="خدمة العملاء">💬<span class="fab-t">مساعدة</span></button>
 
 <div class="modal-back" id="supportModal">
   <div class="modal" style="width:400px">
