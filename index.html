@@ -284,7 +284,15 @@
   .design-item button:hover{color:var(--text)}
 
   @media (max-width:900px){
-    body{overflow:auto}
+    body{overflow:auto; overflow-x:hidden}
+    /* الشريط العلوي: يلتف بدل أن يتمدد ويجرّ الصفحة خارج الشاشة */
+    header{flex-wrap:wrap; gap:8px; padding:10px 12px}
+    .brand{font-size:16px; gap:8px; flex:1 1 auto; min-width:0}
+    .brand small{display:none}
+    .brand .logo{width:34px; height:34px; border-radius:9px}
+    .header-actions{width:100%; margin:0; flex-wrap:wrap; gap:6px; justify-content:flex-start}
+    .header-actions .btn{padding:8px 12px; font-size:12.5px}
+    .userbox{font-size:11px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
     main{flex-direction:column}
     aside{width:100%; order:1; overflow:visible}
     .stage{order:2; padding:14px}
