@@ -48,5 +48,6 @@
 
 ## روابط
 
-- الصفحة الرئيسية والتطبيق: https://aqaridesign.com
+- الصفحة الرئيسية (تعريف المنصة والأسعار والأسئلة الشائعة): https://aqaridesign.com
+- المحرّر (التطبيق نفسه — ابدأ التصميم مباشرة): https://aqaridesign.com/app.html
 - عن المنصة والأسئلة الشائعة: https://aqaridesign.com/about.html

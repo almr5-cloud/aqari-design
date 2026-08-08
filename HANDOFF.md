@@ -83,7 +83,9 @@
 ### الأساسية (تُنشر على الموقع)
 | الملف | الدور |
 |---|---|
-| `index.html` | **التطبيق كامل** — الواجهة، القوالب الستة، اللصق الذكي، الحسابات، الاشتراك، خدمة العملاء، التتبع |
+| `index.html` | **صفحة الهبوط** (الصفحة الرئيسية) — تبيع المنتج قبل ما يُطلب التسجيل: هيرو، منزلق قبل/بعد، عرض اللصق الذكي، الخطوات، القوالب، السعر، أسئلة شائعة. بلا مكتبات خارجية |
+| `app.html` | **التطبيق كامل** — الواجهة، القوالب الستة، اللصق الذكي، الحسابات، الاشتراك، خدمة العملاء، التتبع |
+| `demo-before.jpg` · `demo-after.jpg` | صور منزلق «قبل/بعد» في صفحة الهبوط (مصغّرة بـffmpeg من 1.8MB إلى 107KB) |
 | `stats.html` | لوحة الإحصاءات الخاصة بالمالك (محمية بمفتاح) — مسار العميل، العملاء، فحص SEO/AEO |
 | `about.html` | صفحة محتوى نصية غنية — **مهمة للـSEO/AEO** (يقتبس منها الذكاء الاصطناعي) |
 | `logo.png` | الشعار (512×512) |
@@ -254,8 +256,14 @@ msedge --headless=new --no-pdf-header-footer --print-to-pdf="عقاري-ديزا
 | `SUPABASE_URL` / `SUPABASE_ANON_KEY` | مشروع Supabase | الاتصال بالسحابة |
 
 **جداول قاعدة البيانات**: `profiles` · `designs` · `subscriptions` · `downloads` · `events` · `webhook_log`
-**أحداث التتبع المسموحة**: `visit` · `seen` · `auth_open` · `signup` · `pay_click` · `paywall` · `download` · `support_open` · `support_click`
-> لإضافة نوع حدث جديد **يجب** تحديث سياسة RLS على جدول `events`، وإلا يُرفض بصمت.
+**أحداث التتبع المسموحة**: `visit` (صفحة الهبوط) · `app_open` (دخول المحرّر) · `seen` · `auth_open` · `signup` · `pay_click` · `paywall` · `download` · `support_open` · `support_click`
+> لإضافة نوع حدث جديد **يجب** تحديث سياسة RLS على جدول `events` (اسمها `anon insert events`)، وإلا يُرفض بصمت بخطأ 401.
+> ```sql
+> drop policy if exists "anon insert events" on public.events;
+> create policy "anon insert events" on public.events for insert to anon, authenticated
+>   with check (kind = any (array['visit','app_open','auth_open','signup','pay_click','paywall','download','seen','support_open','support_click']));
+> ```
+> ⚠️ **لوحة الإحصاءات لا تعرض `app_open` بعد** — دالة `get_stats` تحتاج تحديثاً ليظهر في المسار: زيارة ← دخول المحرّر ← تسجيل.
 
 ---
 

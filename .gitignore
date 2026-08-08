@@ -21,3 +21,6 @@ before-design.png
 after-design.png
 كاروسيل/
 *.pdf
+
+# ذاكرة Cloudflare Wrangler المؤقتة (تحتوي معرّف الحساب والبريد — لا تُرفع لمستودع عام)
+.wrangler/
