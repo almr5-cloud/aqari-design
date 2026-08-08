@@ -7,7 +7,7 @@
 create or replace function public.get_stats(p_key text)
 returns json language plpgsql security definer set search_path = public as $fn$
 begin
-  if p_key is distinct from 'd0dd5f09256e94e1e24b0b7b' then
+  if p_key is distinct from 'PUT_YOUR_STATS_KEY_HERE' then
     return json_build_object('error','unauthorized');
   end if;
   return json_build_object(
