@@ -43,3 +43,6 @@ _rest.txt
 _miss.txt
 _ptest*.html
 _oneline.sql
+
+# مصدر الإعلانات — الصور في ads/ تُرسل يدوياً
+_ads.html
