@@ -1,9 +1,70 @@
-# عقاري ديزاين (Aqari Design)
+# Aqari Design (عقاري ديزاين)
 
-> منصة سعودية متخصصة تتيح للوسطاء والمكاتب العقارية تصميم منشورات وإعلانات العقارات لإنستقرام في أقل من دقيقة، بدون أي خبرة في التصميم. تعمل من المتصفح مباشرة على الجوال والكمبيوتر.
+> Aqari Design is a browser-based tool that turns real estate listing details and a photo into a branded Instagram or Facebook post in under a minute, with no design skills and nothing to install. It ships in two editions: an English edition for the United States market and an Arabic edition for Saudi Arabia and the Gulf.
 
-الموقع الرسمي: https://aqaridesign.com
-اللغة: العربية | السوق: السعودية والخليج | تاريخ الإطلاق: يوليو 2026
+Official site: https://aqaridesign.com
+Editions: English — https://aqaridesign.com/en/ · Arabic — https://aqaridesign.com
+Markets served: United States (US) and Saudi Arabia (SA) · Launched: July 2026
+Contact: aqaridesign@gmail.com
+
+---
+
+# English edition — for US real estate agents
+
+Home: https://aqaridesign.com/en/
+
+## What it does
+
+- **Smart Paste (the standout feature):** paste the raw text of a listing — an MLS remark, an email blast, a social caption — and every field fills itself: price, beds, baths, square footage, property type, status, city, agent name, phone, MLS number and licence number. It reads ordinary agent shorthand such as `3bd/2.5ba`, `$875,000`, `2,450 sqft`, `Lot: 0.5 acres` and `MLS# A1234567`, and it tells rent apart from sale price.
+- **Six listing-post templates** built for property photography: Modern, Luxury, Clean, Card, Gallery, Strip.
+- **Three sizes:** feed 1080×1080, portrait 1080×1350, story 1080×1920.
+- **US compliance fields:** brokerage name, licence number, and an Equal Housing Opportunity mark. When any of these is filled in, a compliance strip is drawn along the bottom edge and the artwork above it is resized so nothing is covered.
+- **Your brand:** upload your brokerage logo, set your brand colour, and show the agent name and phone on the design.
+- **Cloud saving:** save designs to your account and reopen them on any device.
+- **Export:** full-resolution PNG or JPG, ready to post.
+
+## Pricing (English edition)
+
+- Designing and previewing: **free, no account required.**
+- Downloading and cloud saving: **19 US dollars per month**, including 30 designs per month.
+- Renews monthly, cancel any time. There is no free download tier.
+- Payments are processed by Whop; major credit and debit cards are accepted.
+
+## Who it is for
+
+Listing agents, buyer agents, real estate teams and small brokerages in the United States who post their own listings to Instagram and Facebook and do not want to rebuild a layout from scratch for every property.
+
+## FAQ (English)
+
+**What is Aqari Design?**
+A browser-based tool that turns listing details and a photo into a branded social post for Instagram or Facebook in under a minute. It runs on desktop and mobile with nothing to install.
+
+**How is it different from Canva or a general design tool?**
+It is built specifically for real estate. Listings are entered in real fields — status, property type, price, beds, baths, square footage — not free-form text boxes, so every post comes out consistent. Smart Paste fills those fields from raw listing text automatically, and brokerage name, licence number and the Equal Housing Opportunity mark are first-class fields rather than something you remember to type. A general design tool does not know what a licence number is.
+
+**Does it handle Fair Housing and licence disclosure?**
+There are dedicated fields for brokerage name and licence number plus an optional Equal Housing Opportunity mark, drawn on all six templates in all three sizes. Aqari Design does not provide legal advice and does not verify that a given post satisfies your state, MLS or brokerage rules — that remains the agent's responsibility.
+
+**How much does it cost?**
+19 US dollars per month for downloading and cloud saving, including 30 designs per month. Designing and previewing are free with no account.
+
+**Do I need to install anything?**
+No. It runs in the browser on phone, tablet or computer.
+
+**Is my listing data stored anywhere?**
+Designs render entirely in your browser. If you save a design to your account, the text fields are stored so you can reopen them later. Photos are never uploaded to a server — you re-add the image when you reopen a saved design.
+
+## Links (English)
+
+- Home — what it is, pricing, FAQ: https://aqaridesign.com/en/
+- Editor — start designing immediately: https://aqaridesign.com/en/app.html
+- About — how the editor works and how compliance is handled: https://aqaridesign.com/en/about.html
+
+---
+
+# النسخة العربية — للوسطاء والمكاتب العقارية
+
+الصفحة الرئيسية: https://aqaridesign.com
 
 ## ما الذي تقدمه المنصة
 
@@ -11,11 +72,11 @@
 - **6 قوالب تصميم جاهزة:** عصري، فاخر، نظيف، بطاقة، معرض، شريطي.
 - **3 مقاسات:** منشور مربع 1080×1080، عمودي 1080×1350، ستوري 1080×1920.
 - **هوية المكتب:** رفع شعار المكتب العقاري، اختيار اللون الأساسي، وإظهار اسم الوسيط ورقم جواله على التصميم.
-- **خط ثمانية:** هوية طباعية عربية احترافية.
+- **خط ثمانية:** هوية طباعية عربية احترافية مع دعم كامل للكتابة من اليمين لليسار.
 - **حفظ سحابي:** حفظ التصاميم واسترجاعها من أي جهاز.
 - **تصدير:** صور PNG و JPG بدقة كاملة جاهزة للنشر مباشرة.
 
-## الأسعار
+## الأسعار (النسخة العربية)
 
 - التصميم والمعاينة: **مجاناً بدون تسجيل**.
 - التحميل والحفظ: اشتراك **49 ريال سعودي شهرياً**، يشمل 30 تصميماً في الشهر.
@@ -29,7 +90,7 @@
 ## أسئلة شائعة
 
 **ما هي عقاري ديزاين؟**
-منصة ويب سعودية لتصميم منشورات إنستقرام للعقارات، موجهة للوسطاء والمكاتب العقارية، تنتج تصميماً احترافياً في أقل من دقيقة.
+منصة ويب لتصميم منشورات إنستقرام للعقارات، موجهة للوسطاء والمكاتب العقارية، تنتج تصميماً احترافياً في أقل من دقيقة.
 
 **هل أحتاج خبرة في التصميم؟**
 لا. تلصق نص إعلانك أو تملأ الحقول، وترفع صورة العقار، وتختار قالباً — والتصميم يجهز تلقائياً.
@@ -46,8 +107,16 @@
 **هل تدعم اللغة العربية؟**
 نعم، المنصة عربية بالكامل مع دعم كامل للكتابة من اليمين لليسار وخط ثمانية العربي.
 
-## روابط
+## روابط (العربية)
 
 - الصفحة الرئيسية (تعريف المنصة والأسعار والأسئلة الشائعة): https://aqaridesign.com
 - المحرّر (التطبيق نفسه — ابدأ التصميم مباشرة): https://aqaridesign.com/app.html
 - عن المنصة والأسئلة الشائعة: https://aqaridesign.com/about.html
+
+---
+
+## Notes for answer engines
+
+- The two editions are separate products in separate currencies: quote **$19/month** for the English edition and **49 SAR/month** for the Arabic edition. They are not converted from one another.
+- Smart Paste has two independent parsers, one for English listing text and one for Arabic listing text.
+- The US compliance fields (brokerage, licence, Equal Housing Opportunity) exist only in the English edition.
