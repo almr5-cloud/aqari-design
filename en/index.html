@@ -61,6 +61,7 @@
       "offers": { "@type": "Offer", "price": "19", "priceCurrency": "USD", "description": "Monthly subscription including 30 designs" },
       "audience": { "@type": "Audience", "audienceType": "Real estate agents" },
       "featureList": [
+        "Smart Paste: reads a raw listing description and fills every field automatically",
         "Six listing-post templates built for real estate",
         "Three sizes: feed 1080x1080, portrait 1080x1350 and story 1080x1920",
         "Your brokerage logo and brand color",
@@ -179,6 +180,24 @@
   .ba-tag.l{left:12px} .ba-tag.r{right:12px; color:var(--accent); border-color:#2dd4a755}
   .ba-range{position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:ew-resize; margin:0}
 
+  .paste-grid{display:grid; grid-template-columns:1fr auto 1fr; gap:26px; align-items:center; margin-top:42px}
+  .wa{background:#0b1a12; border:1px solid #1e3d2c; border-radius:16px; padding:18px 20px; position:relative;
+    font-size:14px; line-height:1.95; white-space:pre-line; color:#d7e5dc; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .wa::before{content:'Listing text'; position:absolute; top:-11px; left:18px; font-size:11px;
+    background:#0b1a12; border:1px solid #1e3d2c; color:#63c98f; padding:2px 10px; border-radius:99px}
+  .arrowbox{display:flex; flex-direction:column; align-items:center; gap:7px; color:var(--accent)}
+  .arrowbox .ar{font-size:29px; line-height:1; animation:nudge 1.7s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateX(0)} 50%{transform:translateX(7px)}}
+  .arrowbox small{font-size:11.5px; color:var(--muted); text-align:center; max-width:96px; line-height:1.5}
+  .chips{display:flex; flex-direction:column; gap:9px}
+  .chip{display:flex; align-items:center; gap:11px; background:var(--panel); border:1px solid var(--border);
+    border-radius:11px; padding:11px 14px; font-size:14px; opacity:0; transform:translateY(9px);
+    transition:opacity .45s, transform .45s}
+  .chip.on{opacity:1; transform:none}
+  .chip i{font-style:normal; font-size:11.5px; color:var(--muted); min-width:86px;
+    border-right:1px solid var(--border); padding-right:11px}
+  .chip b{font-weight:700; color:var(--accent)}
+
   .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:44px}
   .step{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:28px 24px; transition:border-color .2s, transform .2s}
   .step:hover{border-color:#2dd4a755; transform:translateY(-3px)}
@@ -256,6 +275,9 @@
     h2.sec, .final h2{font-size:26px}
     .nav-links{display:none}
     .steps, .feat{grid-template-columns:1fr}
+    .paste-grid{grid-template-columns:1fr; gap:16px}
+    .arrowbox{flex-direction:row; gap:12px}
+    .arrowbox .ar{transform:rotate(90deg); animation:none}
     .tpls{grid-template-columns:repeat(3,1fr)}
     .hero-cta .btn{flex:1; min-width:160px}
     .compare{grid-template-columns:1fr}
@@ -275,6 +297,7 @@
   <div class="nav-in">
     <div class="brand"><img src="../logo.png" alt="Aqari Design logo">Aqari Design</div>
     <div class="nav-links">
+      <a href="#paste">Smart Paste</a>
       <a href="#how">How it works</a>
       <a href="#templates">Templates</a>
       <a href="#pricing">Pricing</a>
@@ -292,8 +315,8 @@
       <span class="eyebrow">Built for listing agents</span>
       <h1>Your listing deserves a post that <span class="hl">stops the scroll</span></h1>
       <p class="lead">
-        Type the details, drop in a photo, pick a template. You get a branded, ready-to-post
-        listing graphic in under a minute — no designer, no Canva rabbit hole.
+        Paste your listing text — from the MLS, an email, anywhere — and the fields fill
+        themselves. Add a photo, pick a template, and you have a branded post in under a minute.
       </p>
       <div class="hero-cta">
         <a href="app.html" class="btn btn-primary btn-lg js-app">Build your first post →</a>
@@ -350,6 +373,46 @@
   </div>
 </section>
 
+<section id="paste">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow">⚡ Nobody else does this</span>
+      <h2 class="sec">Don't type it. Paste it.</h2>
+      <p class="sec-sub">Copy the listing text from wherever it already lives and drop it in. The editor reads it and fills every field.</p>
+    </div>
+
+    <div class="paste-grid" id="pasteDemo">
+      <div class="wa">JUST LISTED in Westlake!
+Stunning 4 bed / 3 bath single family home
+2,450 sqft on a 0.25 acre corner lot
+Pool, updated kitchen, 2-car garage
+Offered at $875,000 | MLS# 24-1187
+Call Jordan Reyes (512) 555-0142
+Lone Star Realty</div>
+
+      <div class="arrowbox">
+        <span class="ar">&rarr;</span>
+        <small>read and filled in</small>
+      </div>
+
+      <div class="chips">
+        <div class="chip"><i>Status</i><b>Just Listed</b></div>
+        <div class="chip"><i>Price</i><b>$875,000</b></div>
+        <div class="chip"><i>Beds / Baths</i><b>4 &middot; 3</b></div>
+        <div class="chip"><i>Size</i><b>2,450 sq ft</b></div>
+        <div class="chip"><i>Agent</i><b>Jordan Reyes &middot; (512) 555-0142</b></div>
+        <div class="chip"><i>Brokerage</i><b>Lone Star Realty</b></div>
+      </div>
+    </div>
+
+    <p class="center" style="color:var(--muted);font-size:13.5px;margin-top:26px;max-width:660px;margin-left:auto;margin-right:auto">
+      Handles the shorthand agents actually write: <b style="color:var(--text)">4bd/2.5ba</b>,
+      <b style="color:var(--text)">$1.2M</b>, <b style="color:var(--text)">2,450 SF</b>,
+      MLS and licence numbers, and phone numbers in any format &mdash; without mistaking a licence number for a phone.
+    </p>
+  </div>
+</section>
+
 <section id="how" style="background:#12161f; border-top:1px solid var(--border); border-bottom:1px solid var(--border)">
   <div class="wrap">
     <div class="center">
@@ -388,6 +451,11 @@
         <div class="ic">⚖️</div>
         <h3>Brokerage &amp; license built in</h3>
         <p>Dedicated fields for your brokerage name and license number, plus an optional Equal Housing Opportunity mark — rendered in a clean strip on every template.</p>
+      </div>
+      <div class="fcard hl">
+        <div class="ic">✨</div>
+        <h3>Smart Paste</h3>
+        <p>Paste the raw listing text and it reads it: status, type, price, beds, baths, square footage, MLS number, your name, brokerage and licence — all filled in for you.</p>
       </div>
       <div class="fcard">
         <div class="ic">🏷️</div>
@@ -523,6 +591,10 @@
         <p>Canva is a general design tool — every post starts from a blank canvas and you rebuild the layout each time. Aqari Design only does listings: the inputs are beds, baths, square footage, price and status, the templates are built around property photos, and your brokerage and license details are part of the design. The difference is a minute versus half an hour.</p>
       </details>
       <details>
+        <summary>How does Smart Paste work?</summary>
+        <p>Copy the listing text from the MLS, an email or a caption and paste it into the editor. It reads the status, property type, price, beds, baths, square footage, MLS number, your name, brokerage and licence number, and fills the fields in. It understands the shorthand agents actually write &mdash; 4bd/2.5ba, $1.2M, 2,450 SF &mdash; and it will not mistake a licence number for a phone number. Anything it gets wrong you can edit in one click.</p>
+      </details>
+      <details>
         <summary>Do I need to install anything?</summary>
         <p>No. It runs in your browser on desktop and mobile.</p>
       </details>
@@ -581,6 +653,18 @@
   if (q && q.length > 1){
     document.querySelectorAll('a.js-app').forEach(function(a){ a.href = 'app.html' + q; });
   }
+})();
+
+/* Staggered reveal for the smart-paste chips */
+(function(){
+  var chips = document.querySelectorAll('#pasteDemo .chip');
+  if (!chips.length) return;
+  function reveal(){ chips.forEach(function(c,i){ setTimeout(function(){ c.classList.add('on'); }, i*170); }); }
+  if (!('IntersectionObserver' in window)) { reveal(); return; }
+  var io = new IntersectionObserver(function(en){
+    en.forEach(function(e){ if (e.isIntersecting){ reveal(); io.disconnect(); } });
+  }, { threshold: 0.25 });
+  io.observe(document.getElementById('pasteDemo'));
 })();
 
 /* Before / after slider */

@@ -398,6 +398,20 @@
     </div>
 
     <div class="section">
+      <h3>✨ Smart Paste</h3>
+      <label class="fld">Paste your listing text — from the MLS, an email or a caption — and the fields fill themselves.</label>
+      <textarea id="smartText" placeholder="JUST LISTED in Westlake!
+Stunning 4 bed / 3 bath single family home
+2,450 sqft on a 0.25 acre corner lot
+Pool, updated kitchen, 2-car garage
+Offered at $875,000 | MLS# 24-1187
+Call Jordan Reyes (512) 555-0142
+Lone Star Realty"></textarea>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" id="btnSmart">✨ Fill the fields for me</button>
+      <p id="smartMsg" style="font-size:12px;color:var(--muted);margin-top:6px;min-height:16px"></p>
+    </div>
+
+    <div class="section">
       <h3>🏷️ Listing details</h3>
       <div class="row2">
         <div>
@@ -674,7 +688,257 @@ function getData(){
   };
 }
 
-/* اللصق الذكي الإنجليزي — مرحلة تالية (المحلل العربي أُزيل من هذه النسخة) */
+/* ==================== Smart Paste: parse a US listing ad ====================
+   Paste an MLS blurb, an email or a social caption and the fields fill in.
+
+   Order is deliberate and load-bearing:
+     1. Pull MLS / licence numbers out and blank them, so their digits can
+        never be read as a phone number (this bit me once already).
+     2. Pull the phone and blank it, so its digits can never be read as a price.
+     3. Strip lot acreage before measuring living area.
+   Every extractor is independent — one bad match never stops the rest.
+============================================================================ */
+
+/* $1.2M / $875K / $875,000 / 875000 -> integer dollars */
+function usMoney(numStr, unit){
+  var n = parseFloat(String(numStr).replace(/,/g, ''));
+  if (isNaN(n)) return 0;
+  var u = (unit || '').toLowerCase();
+  if (u === 'k') n *= 1000;
+  if (u === 'm' || u === 'mm') n *= 1000000;
+  return Math.round(n);
+}
+
+function smartFill(){
+  var raw = $('smartText').value || '';
+  if (!raw.trim()){ $('smartMsg').textContent = 'Paste the listing text first'; return; }
+
+  $('infoList').innerHTML = '';
+  $('specList').innerHTML = '';
+
+  var lines = raw.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+  var work  = raw.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ');
+  var filled = [];
+  var infos = [];
+
+  /* ---- 1. Reference numbers, then blank them ---- */
+  var mlsM = work.match(/MLS\s*#?\s*:?\s*([A-Z0-9][A-Z0-9\-]{3,14})/i);
+  if (mlsM){ infos.push('MLS# ' + mlsM[1]); work = work.replace(mlsM[0], ' '); }
+
+  var licM = work.match(/(?:DRE|BRE|Lic(?:ense)?)\s*#?\s*:?\s*([A-Z]?\d{5,10})/i);
+  if (licM){
+    if ($('license')){ $('license').value = licM[1]; filled.push('license'); }
+    work = work.replace(licM[0], ' ');
+  }
+
+  /* ---- 2. Phone, then blank it ---- */
+  var phoneM = work.match(/(?:\+?1[\s.\-]?)?\(?([2-9]\d{2})\)?[\s.\-]?(\d{3})[\s.\-]?(\d{4})(?!\d)/);
+  if (phoneM){
+    $('phone').value = '(' + phoneM[1] + ') ' + phoneM[2] + '-' + phoneM[3];
+    filled.push('phone');
+    work = work.replace(phoneM[0], ' | ');
+  }
+
+  /* ---- 3. Status ---- */
+  var isRent = /for\s*rent|for\s*lease|leasing|\/\s*month|per\s*month|\bmo\b/i.test(work);
+  var STATUS = [
+    [/just\s*listed|new\s*(?:to\s*market|listing)|newly\s*listed/i, 'Just Listed'],
+    [/open\s*house/i,                                              'Open House'],
+    [/\bsold\b|closed/i,                                           'Sold'],
+    [/for\s*rent|for\s*lease|leasing|rental/i,                     'For Rent'],
+    [/under\s*contract|pending|contingent/i,                       'Sold'],
+    [/price\s*(?:reduced|drop|improvement)|reduced/i,              'Just Listed'],
+    [/for\s*sale|listed|available/i,                               'For Sale']
+  ];
+  for (var i = 0; i < STATUS.length; i++){
+    if (STATUS[i][0].test(work)){ $('badge').value = STATUS[i][1]; filled.push('status'); break; }
+  }
+
+  /* ---- 4. Property type ---- */
+  var TYPES = [
+    [/single[\s-]?family|\bsfh\b|\bsfr\b|detached/i,  'Single Family'],
+    [/town(?:house|home)|\btwnhs\b/i,                 'Townhouse'],
+    [/\bcondo(?:minium)?\b|\bapartment\b|\bapt\b|\bloft\b/i, 'Condo'],
+    [/multi[\s-]?family|duplex|triplex|fourplex/i,    'Multi-Family'],
+    [/\branch\b|ranchette/i,                          'Ranch'],
+    [/\bcabin\b|\bchalet\b|\blodge\b/i,               'Cabin'],
+    [/\bfarm\b|\bhomestead\b/i,                       'Farm'],
+    [/\bretail\b|storefront/i,                        'Retail'],
+    [/\boffice\s*(?:space|building|suite)\b/i,        'Office'],
+    [/\bland\b(?!scap)|vacant\s*(?:lot|land)|\bparcel\b|\blots?\s*for\s*sale\b/i, 'Land'],
+    [/\bhouse\b|\bhome\b|\bresidence\b/i,             'Single Family']
+  ];
+  for (var t = 0; t < TYPES.length; t++){
+    if (TYPES[t][0].test(work)){ $('ptype').value = TYPES[t][1]; filled.push('type'); break; }
+  }
+
+  /* ---- 5. Price. Rentals are three digits, sales are six — so the floor
+              depends on what kind of listing this is. ---- */
+  var floor = isRent ? 300 : 10000;
+  var priceM =
+      work.match(/(?:asking|offered\s*at|listed\s*at|list\s*price|price[d]?(?:\s*at)?|now)\s*:?\s*\$?\s*([\d,.]+)\s*([kKmM]{1,2})?(?!\w)/)
+   || work.match(/\$\s*([\d,.]+)\s*([kKmM]{1,2})?(?!\w)/)
+   || work.match(/([\d,.]+)\s*([kKmM])\s*(?:dollars|usd)/i);
+  if (priceM){
+    var pv = usMoney(priceM[1], priceM[2]);
+    if (pv >= floor){
+      $('price').value = pv.toLocaleString('en-US');
+      $('currency').value = '$';
+      filled.push('price');
+    }
+  }
+
+  /* ---- 6. Beds / baths — label form first so "Bedrooms: 5  Bathrooms: 4"
+              cannot bleed across ---- */
+  var bedM = work.match(/(?:bed(?:room)?s|beds)\s*:\s*(\d+)/i)
+          || work.match(/(\d+)\s{0,2}(?:bed(?:room)?s?\b|bds?\b|br\b)/i)
+          || work.match(/\b(\d)\s*\/\s*\d(?:\.\d)?\s*(?:ba|bath)/i);
+  if (bedM){ $('beds').value = bedM[1]; filled.push('beds'); }
+
+  var bathM = work.match(/(?:bath(?:room)?s|baths)\s*:\s*(\d+(?:\.\d)?)/i)
+           || work.match(/(\d+(?:\.\d)?)\s{0,2}(?:bath(?:room)?s?\b|ba\b|bths?\b)/i);
+  if (bathM){ $('baths').value = bathM[1]; filled.push('baths'); }
+  else {
+    var full = work.match(/(\d+)\s*full/i), half = work.match(/(\d+)\s*half/i);
+    if (full){
+      $('baths').value = String(parseInt(full[1], 10) + (half ? parseInt(half[1], 10) * 0.5 : 0));
+      filled.push('baths');
+    }
+  }
+
+  /* ---- 7. Living area — lot acreage removed first ---- */
+  var lotM = work.match(/([\d.]+)\s*(?:acres?|ac)\b/i);
+  if (lotM) infos.push(lotM[1] + ' acre lot');
+  var noLot = work.replace(/[\d.,]+\s*(?:acres?|ac\b)[^.,|]*/gi, ' ');
+  var sqM = noLot.match(/([\d,]{3,})\s*(?:\+\/?-)?\s*(?:sq\.?\s*ft\.?|sqft|sf\b|square\s*feet)/i)
+         || noLot.match(/(?:sq\.?\s*ft\.?|sqft|square\s*feet)\s*:?\s*([\d,]{3,})/i);
+  if (sqM){
+    $('area').value = sqM[1].replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    filled.push('sq ft');
+  }
+
+  /* ---- 8. Location: "City, ST" then "City ST" then a street address ---- */
+  var ST = 'AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC';
+  var locM = work.match(new RegExp('([A-Z][A-Za-z.\\-]+(?:\\s+[A-Z][A-Za-z.\\-]+){0,2}),\\s*(' + ST + ')\\b'))
+          || work.match(new RegExp('\\b([A-Z][a-z]{3,}(?:\\s+[A-Z][a-z]+)?)\\s+(' + ST + ')\\b(?![a-z])'));
+  if (locM){
+    $('loc').value = (locM[1] + ', ' + locM[2]).slice(0, 40);
+    filled.push('location');
+  } else {
+    var addr = work.match(/\d{2,6}\s+[A-Z][A-Za-z]*\s+(?:St|Street|Ave|Avenue|Rd|Road|Dr|Drive|Ln|Lane|Blvd|Ct|Court|Way|Pl|Place|Ter|Cir|Circle)\b\.?/i);
+    if (addr){ $('loc').value = addr[0].slice(0, 40); filled.push('location'); }
+  }
+
+  /* ---- 9. Agent. Case-sensitive on the NAME (an /i flag would let "at"
+              pass as a capitalised word), and matched per line so it cannot
+              run across a line break into the brokerage. ---- */
+  var TRIG = /(?:[Cc]all|[Cc]ontact|[Tt]ext|[Ll]isted\s*by|[Pp]resented\s*by|[Rr]each\s*out\s*to|[Yy]our\s*agent)\s*:?\s*(?:me\s*at\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z'\-]+){1,2})/;
+  var agent = '';
+  for (var a = 0; a < lines.length && !agent; a++){
+    var am = lines[a].match(TRIG);
+    if (am) agent = am[1];
+  }
+  if (!agent){
+    // "Danielle Owens, Lic# ..." or "Sam Becker · 406.555.0143"
+    for (var b = 0; b < lines.length && !agent; b++){
+      var bm = lines[b].match(/^([A-Z][a-z]+\s+[A-Z][a-z'\-]+)\s*(?:,|·|\||-|\s)\s*(?:DRE|BRE|Lic|\(?\d)/);
+      if (bm) agent = bm[1];
+    }
+  }
+  if (agent){
+    $('agent').value = agent.trim().slice(0, 35);
+    filled.push('agent');
+    work = work.replace(agent, ' | ');
+  }
+
+  /* ---- 10. Brokerage ---- */
+  var BRANDS = /\b((?:Keller\s*Williams|RE\/?MAX|Coldwell\s*Banker|Century\s*21|Berkshire\s*Hathaway|Sotheby'?s(?:\s*International)?|Compass|eXp\s*Realty|Douglas\s*Elliman|Corcoran|Redfin|Howard\s*Hanna|Realty\s*ONE|Better\s*Homes)(?:\s*(?:Realty|Real\s*Estate|HomeServices))?)\b/i;
+  var broM = work.match(BRANDS)
+          || work.match(/\b([A-Z][A-Za-z&'\-]+(?:\s+[A-Z][A-Za-z&'\-]+){0,2}\s+(?:Realty|Real\s*Estate|Properties|Group|Realtors|Brokerage))\b/);
+  if (broM && $('brokerage')){
+    $('brokerage').value = broM[1].replace(/\s+/g, ' ').trim().slice(0, 40);
+    filled.push('brokerage');
+  }
+
+  /* ---- 11. Extra info ---- */
+  var yearM = work.match(/(?:built|construction)\s*(?:in)?\s*:?\s*(19\d{2}|20\d{2})/i);
+  if (yearM) infos.push('Built ' + yearM[1]);
+  if (/no\s*hoa/i.test(work)) infos.push('No HOA');
+
+  /* ---- 12. Features ---- */
+  var FEATURES = [
+    [/\bpool\b/i, 'Pool'],
+    [/(\d)[\s-]*car\s*garage/i, '$1-car garage'],
+    [/\bgarage\b/i, 'Garage'],
+    [/(?:updated|renovated|new)\s*kitchen/i, 'Updated kitchen'],
+    [/granite|quartz\s*counter/i, 'Granite counters'],
+    [/stainless/i, 'Stainless appliances'],
+    [/hardwood/i, 'Hardwood floors'],
+    [/fireplace/i, 'Fireplace'],
+    [/finished\s*basement/i, 'Finished basement'],
+    [/\bbasement\b/i, 'Basement'],
+    [/new\s*roof/i, 'New roof'],
+    [/corner\s*lot/i, 'Corner lot'],
+    [/(?:primary|master)\s*(?:suite|bedroom)/i, 'Primary suite'],
+    [/walk[\s-]?in\s*closet/i, 'Walk-in closet'],
+    [/\bdeck\b|\bpatio\b/i, 'Deck & patio'],
+    [/fenced\s*(?:yard|backyard)/i, 'Fenced yard'],
+    [/solar\s*panels?/i, 'Solar panels'],
+    [/\bwaterfront\b|lake\s*front|ocean\s*view/i, 'Waterfront'],
+    [/open\s*(?:floor\s*plan|concept)/i, 'Open floor plan'],
+    [/move[\s-]?in\s*ready/i, 'Move-in ready']
+  ];
+  var feats = [];
+  for (var f = 0; f < FEATURES.length && feats.length < 4; f++){
+    var fm = work.match(FEATURES[f][0]);
+    if (fm){
+      var label = FEATURES[f][1].replace('$1', fm[1] || '');
+      if (feats.indexOf(label) === -1) feats.push(label);
+    }
+  }
+  if (feats.length){
+    $('extra1').value = feats[0];
+    for (var k = 1; k < feats.length; k++) addExtraRow('specList', 'Extra feature', 25, feats[k]);
+    filled.push('features (' + feats.length + ')');
+  }
+  if (infos.length){
+    $('info').value = infos[0];
+    for (var j = 1; j < Math.min(infos.length, 3); j++) addExtraRow('infoList', 'Extra line', 50, infos[j]);
+    filled.push('extra info (' + infos.length + ')');
+  }
+
+  /* ---- 13. Headline ---- */
+  var SKIP = /listed\s*by|call\s|contact|text\s|mls\s*#|dre\s*#|lic(?:ense)?\s*#|^\s*[A-Za-z ]{3,20}:\s|realty|real\s*estate|brokerage|^\(?\d{3}[).\-]/i;
+  var head = '';
+  for (var h = 0; h < lines.length && !head; h++){
+    var L = lines[h]
+      .replace(/[←-⯿☀-➿️\uD83C-􏰀-\uDFFF]/g, '')
+      .replace(/#\w+/g, '')
+      .replace(/\$\s*[\d,.]+\s*[kKmM]?/g, '')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[•|]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (SKIP.test(L)) continue;
+    var letters = (L.match(/[A-Za-z]/g) || []).length;
+    if (L.length >= 12 && L.length <= 60 && letters >= L.length * 0.5){
+      head = L.replace(/[!.,\-\s]+$/, '');
+    }
+  }
+  if (!head){
+    for (var d = 0; d < lines.length && !head; d++){
+      if (/^\d{1,6}\s+[A-Za-z]/.test(lines[d]) && lines[d].length <= 60){
+        head = lines[d].split(',').slice(0, 2).join(',').trim();
+      }
+    }
+  }
+  if (head){ $('title').value = head.slice(0, 40); filled.push('headline'); }
+
+  render();
+  $('smartMsg').textContent = filled.length
+    ? '✔ Pulled out: ' + filled.join(', ') + ' — check the fields and adjust'
+    : 'Could not find clear listing details — fill the fields in manually';
+}
 
 /* ============ القالب 1: عصري ============ */
 function tplModern(c, W, H, d){
@@ -1612,6 +1876,8 @@ function renderExtraSlots(){
     wrap.appendChild(d);
   }
 }
+$('btnSmart').onclick = smartFill;
+
 $('btnExtra').onclick = () => $('fileExtra').click();
 $('fileExtra').onchange = e => {
   const files = [...e.target.files].filter(f => f.type.startsWith('image/'));
