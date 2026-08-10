@@ -1982,7 +1982,18 @@ let authMode = 'login';
 function track(kind){
   if (!sb) return;
   try {
-    const src = new URLSearchParams(location.search).get('src') || 'en';
+    /* زيارات المالك والتطوير لا تُحتسب:
+       افتح الموقع مرة بـ ?internal=1 على كل جهاز تستخدمه، فتُوسم زياراتك
+       بمصدر internal وتستبعدها لوحة الإحصاءات. للإلغاء: ?internal=0 */
+    var _flag = new URLSearchParams(location.search).get('internal');
+    try {
+      if (_flag === '1') localStorage.setItem('aq_internal', '1');
+      if (_flag === '0') localStorage.removeItem('aq_internal');
+    } catch (e) {}
+    var _isInternal = false;
+    try { _isInternal = localStorage.getItem('aq_internal') === '1'; } catch (e) {}
+
+    const src = _isInternal ? 'internal' : (new URLSearchParams(location.search).get('src') || 'en');
     const device = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'جوال' : 'كمبيوتر';
     let ref = '';
     if (document.referrer){

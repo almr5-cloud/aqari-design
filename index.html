@@ -764,7 +764,18 @@
   var URL_ = 'https://pjhafrhjmvyirrcmnrhc.supabase.co/rest/v1/events';
   var KEY_ = 'sb_publishable_IW43eGfG4ou5GixLpvr_6g_rKPe6Mpr';
   try {
-    var src = new URLSearchParams(location.search).get('src') || '';
+    /* زيارات المالك والتطوير لا تُحتسب:
+       افتح الموقع مرة بـ ?internal=1 على كل جهاز تستخدمه، فتُوسم زياراتك
+       بمصدر internal وتستبعدها لوحة الإحصاءات. للإلغاء: ?internal=0 */
+    var _flag = new URLSearchParams(location.search).get('internal');
+    try {
+      if (_flag === '1') localStorage.setItem('aq_internal', '1');
+      if (_flag === '0') localStorage.removeItem('aq_internal');
+    } catch (e) {}
+    var _isInternal = false;
+    try { _isInternal = localStorage.getItem('aq_internal') === '1'; } catch (e) {}
+
+    var src = _isInternal ? 'internal' : (new URLSearchParams(location.search).get('src') || '');
     var device = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'جوال' : 'كمبيوتر';
     var ref = '';
     if (document.referrer){
