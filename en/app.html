@@ -1735,10 +1735,10 @@ track('app_open');
 
 /* ==================== الاشتراك إلزامي: لا خطة مجانية ==================== */
 /* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
-/* USD plan checkout link. Create a $19/month plan in Whop and paste its
-   checkout URL here. While empty, the app tells users to contact support
-   instead of sending them to the SAR plan. */
-const PAYMENT_LINK = '';
+/* USD plan checkout link ($19/month, verified base_currency: usd).
+   The Arabic edition uses a separate SAR plan in app.html — keep them apart
+   so each market pays in its own currency with no FX surprises. */
+const PAYMENT_LINK = 'https://whop.com/checkout/plan_i7EDOJ6yAzUsO';
 /* Monthly download cap for the $19 plan — change this number only here. */
 const PRO_MONTHLY_DOWNLOADS = 30;
 let subscription = null;
