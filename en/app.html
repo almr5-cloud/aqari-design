@@ -6,7 +6,7 @@
 <meta name="google-site-verification" content="Y0hev5SAt3O5KkA5GN4ubzSjeTaKGEKI40E_W0mTTyk" />
 
 <title>Listing Post Editor | Aqari Design for Real Estate Agents</title>
-<meta name="description" content="Create branded Instagram and Facebook posts for your real estate listings in under a minute. Six agent-ready templates, three sizes, your logo, brokerage name and license number.">
+<meta name="description" content="Create branded Instagram and Facebook posts for your listings in under a minute. Six agent-ready templates, three sizes, your logo, brokerage and license.">
 <meta name="keywords" content="real estate marketing, listing post design, realtor social media, instagram post for realtors, just listed template, open house graphic">
 <meta name="author" content="Aqari Design">
 <meta name="robots" content="index, follow">
@@ -218,7 +218,8 @@
   .mailbox{background:var(--panel2); border:1px solid var(--accent); border-radius:11px;
            padding:13px; text-align:center; font-size:16px; font-weight:800; color:var(--accent);
            direction:ltr; user-select:all; margin:12px 0}
-  .qopt{display:block; width:100%; text-align:right; background:var(--panel2); border:1px solid var(--border);
+  /* start لا right: أزرار الدعم السريعة كانت محاذاة يميناً — بقية من RTL */
+  .qopt{display:block; width:100%; text-align:start; background:var(--panel2); border:1px solid var(--border);
         border-radius:10px; padding:11px 13px; margin-bottom:7px; color:var(--text);
         font-family:inherit; font-size:13px; cursor:pointer; transition:.15s}
   .qopt:hover{border-color:var(--accent)}
@@ -268,7 +269,9 @@
 <header>
   <div class="brand">
     <img class="logo" src="../logo.png" alt="Aqari Design logo">
-    <div>Aqari Design<small>Listing posts for real estate agents</small></div>
+    <!-- h1 لا div: الصفحة مفهرسة وكانت بلا عنوان رئيسي. font/margin موروثان
+         من .brand حتى لا يتغيّر المظهر إطلاقاً. -->
+    <h1 style="font:inherit;margin:0">Aqari Design<small>Listing posts for real estate agents</small></h1>
   </div>
   <div class="header-actions">
     <a class="btn btn-ghost btn-sm" href="about.html" style="text-decoration:none;display:inline-block" title="About & FAQ">About</a>
@@ -503,6 +506,7 @@ Lone Star Realty"></textarea>
       </label>
       <p style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:8px">
         Most states require the brokerage name on advertising, and many brokerages require the EHO mark. Check your local rules.
+        Aqari Design is not a law firm and does not verify that a post meets your state, MLS or brokerage requirements &#8212; that stays with you.
       </p>
     </div>
 
@@ -665,6 +669,49 @@ function featureItems(d){
   if (d.area)  items.push({ic:'📐', v:d.area, l:'Sq Ft'});
   (d.extras || []).forEach(x => items.push({ic:'✨', v:x, l:''}));
   return items;
+}
+
+/* صف المواصفات بخلايا وفواصل — يستخدمه قالبا clean وgallery.
+
+   عرض كل خلية بنسبة عرض نصّها، لا بالتساوي. القسمة المتساوية كانت تمنح
+   "Pool · 3-car garage" نفس عرض "4" تماماً، فيهبط خطه إلى حجم مجهري
+   ويلتصق بجارته حتى يتداخلان — والميزة الإضافية هي بالضبط ما تعرضه صفحة
+   الهبوط كمثال، أي أن العطل يظهر في أول تصميم يجرّبه الوسيط.
+
+   items معكوسة مسبقاً (الرسم من اليمين لليسار)، لذا نتحرك بـedge نزولاً
+   من xr ونرسم الفاصل عند الحافة بعد خصم عرض الخلية.                      */
+function drawFeatureRow(c, items, xl, xr, y, o){
+  const total = xr - xl;
+  c.font = `700 ${o.vSize}px ${SANS}`;
+  const raw = items.map(it => Math.max(
+    c.measureText(it.ic + ' ' + it.v).width,
+    it.l ? c.measureText(it.l).width : 0) + o.gap);
+  const sum = raw.reduce((a, b) => a + b, 0);
+  const widths = raw.map(w => total * w / sum);
+
+  let edge = xr;
+  items.forEach((it, i) => {
+    const cw = widths[i], cx = edge - cw/2, inner = cw - o.gap*0.55;
+    c.textAlign = 'center';
+    const vfs = fitText(c, it.ic + ' ' + it.v, inner, o.vSize, 700, SANS);
+    c.font = `700 ${vfs}px ${SANS}`;
+    c.fillStyle = o.vColor;
+    c.fillText(it.ic + ' ' + it.v, cx, y);
+    if (it.l){
+      const lfs = fitText(c, it.l, inner, o.lSize, o.lWeight, SANS);
+      c.font = `${o.lWeight} ${lfs}px ${SANS}`;
+      c.fillStyle = o.lColor;
+      c.fillText(it.l, cx, y + o.lDy);
+    }
+    edge -= cw;
+    if (i < items.length - 1){
+      c.strokeStyle = o.sep; c.lineWidth = o.sepW;
+      c.beginPath();
+      c.moveTo(edge, y - o.sepUp);
+      c.lineTo(edge, y + o.sepDn);
+      c.stroke();
+    }
+  });
 }
 
 // يجمع قيم حقول القسم (الأساسي + الإضافية) غير الفارغة
@@ -836,7 +883,7 @@ function smartFill(){
   /* ---- 9. Agent. Case-sensitive on the NAME (an /i flag would let "at"
               pass as a capitalised word), and matched per line so it cannot
               run across a line break into the brokerage. ---- */
-  var TRIG = /(?:[Cc]all|[Cc]ontact|[Tt]ext|[Ll]isted\s*by|[Pp]resented\s*by|[Rr]each\s*out\s*to|[Yy]our\s*agent)\s*:?\s*(?:me\s*at\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z'\-]+){1,2})/;
+  var TRIG = /(?:[Cc]all|[Cc]ontact|[Tt]ext|[Ll]isted\s*by|[Pp]resented\s*by|[Oo]ffered\s*by|[Mm]arketed\s*by|[Rr]each\s*out\s*to|(?:[Ll]isting\s*|[Yy]our\s*)?[Aa]gent)\s*:?\s*(?:me\s*at\s*)?([A-Z][a-z]+(?:\s+[A-Z][a-z'\-]+){1,2})/;
   var agent = '';
   for (var a = 0; a < lines.length && !agent; a++){
     var am = lines[a].match(TRIG);
@@ -1193,7 +1240,15 @@ function tplClean(c, W, H, d){
   const s = W/1080;
   c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H);
 
-  const imgH = H * (H > W ? 0.55 : 0.60);
+  const barH = 104*s;
+  const hasExtra = featureItems(d).some(it => !it.l);
+  /* ارتفاع الصورة = ما تبقّى بعد المحتوى، لا نسبة ثابتة.
+     النسبة الثابتة 0.60 كانت تترك نحو 230 بكسل فقط لخمسة صفوف (النوع،
+     العنوان، الموقع، صف المواصفات، المزايا الإضافية) في المقاس المربع،
+     فيهبط الموقع فوق صف المواصفات ويتراكب النصّان. في المقاسين العمودي
+     والستوري المساحة تكفي أصلاً فتبقى النسبة كما هي. */
+  const needed = (88 + 88 + 66 + (d.info ? 46 : 0) + 110 + (hasExtra ? 54 : 0) + 40) * s;
+  const imgH = Math.min(H * (H > W ? 0.55 : 0.60), H - barH - needed);
   drawCover(c, 0, 0, W, imgH);
 
   c.direction = 'ltr'; c.textBaseline = 'middle';
@@ -1216,7 +1271,6 @@ function tplClean(c, W, H, d){
   c.fillStyle = state.color;
   c.fillRect(W - 12*s, imgH, 12*s, H - imgH);
 
-  const barH = 104*s;
   let y = imgH + 88*s;
   c.textAlign = 'right';
 
@@ -1246,9 +1300,12 @@ function tplClean(c, W, H, d){
     y += 46*s;
   }
 
-  // السعر يسار + المواصفات يمين
-  const rowY = Math.min(y + 60*s, H - barH - 70*s);
-  const items = featureItems(d).slice().reverse();   /* chips paint right-to-left */
+  const allFeat = featureItems(d);
+  const extras  = allFeat.filter(it => !it.l);
+
+  // السعر يسار + المواصفات يمين (والمزايا الإضافية سطرٌ تحتهما — انظر أدناه)
+  const rowY = Math.min(y + 60*s, H - barH - (extras.length ? 116*s : 70*s));
+  const items = allFeat.filter(it => it.l).slice().reverse();   /* chips paint right-to-left */
   if (items.length){
     // تصغير موحّد حتى لا تزاحم المواصفات منطقة السعر يساراً
     const availW = W - 56*s - W*0.42 - 70*s;
@@ -1280,6 +1337,21 @@ function tplClean(c, W, H, d){
   c.font = `900 ${ps}px ${SERIF}`;
   c.fillStyle = state.color;
   c.fillText(priceTxt, 56*s, rowY);
+
+  /* المزايا الإضافية سطرٌ مستقل تحت صف السعر.
+
+     داخل الصف نفسه لا يبقى لها إلا ما تبقّى من ~500 بكسل بعد الغرف والحمامات
+     والمساحة، فيهبط معامل التصغير إلى حدّه الأدنى 0.55 — خط 16 بكسل في صورة
+     1080 لا يُقرأ على إنستقرام. ولا تصلح فوق الصف أيضاً: rowY مقيّد بحدّ أدنى
+     (H - barH - 70) فيصطدم السطران. المساحة الحرة الوحيدة بين الصف والشريط. */
+  if (extras.length){
+    const line = extras.map(e => e.ic + ' ' + e.v).join('   ·   ');
+    const efs = fitText(c, line, W - 130*s, 26*s, 500, SANS);
+    c.font = `500 ${efs}px ${SANS}`;
+    c.fillStyle = '#98a1b0';
+    c.textAlign = 'right';
+    c.fillText(line, W - 56*s, Math.min(rowY + 66*s, H - barH - 26*s));
+  }
 
   // شريط الوسيط
   c.fillStyle = darken(state.color, isLight(state.color) ? 0.55 : 0.8);
@@ -1375,26 +1447,10 @@ function tplCard(c, W, H, d){
 
   if (items.length){
     y += 8*s;
-    const availW = W - 2*cm - 2*pad;
-    const cellW = availW / items.length;
-    items.forEach((it, i) => {
-      const cx = xr - cellW*i - cellW/2;
-      c.textAlign = 'center';
-      const vfs = fitText(c, it.ic + ' ' + it.v, cellW - 24*s, 30*s, 700, SANS);
-      c.font = `700 ${vfs}px ${SANS}`;
-      c.fillStyle = '#141a22';
-      c.fillText(it.ic + ' ' + it.v, cx, y);
-      const lfs = fitText(c, it.l, cellW - 24*s, 21*s, 500, SANS);
-      c.font = `500 ${lfs}px ${SANS}`;
-      c.fillStyle = '#98a1b0';
-      c.fillText(it.l, cx, y + 36*s);
-      if (i < items.length - 1){
-        c.strokeStyle = '#e3e7ee'; c.lineWidth = 2*s;
-        c.beginPath();
-        c.moveTo(xr - cellW*(i+1), y - 18*s);
-        c.lineTo(xr - cellW*(i+1), y + 42*s);
-        c.stroke();
-      }
+    drawFeatureRow(c, items, cm + pad, xr, y, {
+      vSize: 30*s, lSize: 21*s, gap: 34*s, lDy: 36*s, lWeight: 500,
+      vColor: '#141a22', lColor: '#98a1b0',
+      sep: '#e3e7ee', sepW: 2*s, sepUp: 18*s, sepDn: 42*s
     });
     y += 92*s;
   }
@@ -1512,26 +1568,10 @@ function tplGallery(c, W, H, d){
   // صف المواصفات بأيقونات وفواصل
   const items = featureItems(d).slice().reverse();   /* chips paint right-to-left */
   if (items.length){
-    const rowY = H*0.79;
-    const cellW = (txR - txL) / items.length;
-    items.forEach((it, i) => {
-      const cx = txR - cellW*i - cellW/2;
-      c.textAlign = 'center';
-      const vfs = fitText(c, it.ic + ' ' + it.v, cellW - 20*s, 34*s, 700, SANS);
-      c.font = `700 ${vfs}px ${SANS}`;
-      c.fillStyle = '#fff';
-      c.fillText(it.ic + ' ' + it.v, cx, rowY);
-      const lfs = fitText(c, it.l, cellW - 20*s, 22*s, 400, SANS);
-      c.font = `400 ${lfs}px ${SANS}`;
-      c.fillStyle = gold;
-      c.fillText(it.l, cx, rowY + 40*s);
-      if (i < items.length - 1){
-        c.strokeStyle = 'rgba(255,255,255,0.2)'; c.lineWidth = 1.5*s;
-        c.beginPath();
-        c.moveTo(txR - cellW*(i+1), rowY - 24*s);
-        c.lineTo(txR - cellW*(i+1), rowY + 48*s);
-        c.stroke();
-      }
+    drawFeatureRow(c, items, txL, txR, H*0.79, {
+      vSize: 34*s, lSize: 22*s, gap: 30*s, lDy: 40*s, lWeight: 400,
+      vColor: '#fff', lColor: gold,
+      sep: 'rgba(255,255,255,0.2)', sepW: 1.5*s, sepUp: 24*s, sepDn: 48*s
     });
   }
 
@@ -1867,7 +1907,7 @@ function renderExtraSlots(){
       d.appendChild(im);
       const x = document.createElement('button');
       x.textContent = '✕'; x.title = 'Remove';
-      x.style.cssText = 'position:absolute;top:2px;left:2px;width:18px;height:18px;border:none;'
+      x.style.cssText = 'position:absolute;top:2px;inset-inline-end:2px;width:18px;height:18px;border:none;'
         + 'border-radius:50%;background:#000c;color:#fff;cursor:pointer;font-size:10px;line-height:1;padding:0';
       x.onclick = () => {
         state.extraImgs.splice(i, 1);
@@ -2100,10 +2140,10 @@ function showPayGuard(){
     + 'padding:12px;font-size:16px;font-weight:800;direction:ltr;color:var(--accent);'
     + 'user-select:all;margin-bottom:14px">' + email + '</div>'
     + '<div style="background:#3a2a12;border:1px solid #c9821f;border-radius:10px;padding:11px 13px;'
-    + 'font-size:12.5px;line-height:1.8;text-align:right;color:#ffd699;margin-bottom:16px">'
+    + 'font-size:12.5px;line-height:1.8;text-align:start;color:#ffd699;margin-bottom:16px">'
     + '🍎 <b>Paying with Apple Pay?</b> Change the contact email field on the checkout page '
     + 'to the address above — Apple fills in its own relay address by default, and it will not match.</div>'
-    + '<div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;text-align:right">'
+    + '<div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;text-align:start">'
     + '🔄 This is a <b style="color:var(--text)">recurring monthly</b> subscription at $19 — '
     + 'you get an email receipt each renewal and can cancel any time.</div>'
     + '<button class="btn btn-primary" id="pgGo" style="width:100%">I understand — continue to checkout</button>'
