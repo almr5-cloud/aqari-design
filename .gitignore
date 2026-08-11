@@ -29,6 +29,11 @@ after-design.png
 _before.html
 _regen-after.html
 _prop.png
+_after_en.html
+_after_raw.png
+_lsr-logo.png
+# الصورة المصدر لعروض النسخة الإنجليزية (Pexels) — المنشور هو en/demo-*.jpg فقط
+us-house.jpg
 
 # صور يصدّرها المستخدم من المحرّر للاختبار — لا تُنشر
 فيلا-*.png
