@@ -1977,22 +1977,44 @@ function download(type){
     return;
   }
   render();
-  const title = $('title').value.trim() || 'listing-post';
-  const a = document.createElement('a');
-  a.download = title.replace(/\s+/g, '-') + (type === 'jpg' ? '.jpg' : '.png');
-  a.href = type === 'jpg' ? cv.toDataURL('image/jpeg', 0.92) : cv.toDataURL('image/png');
-  a.click();
-  // تسجيل التحميل في العداد الشهري (مع إظهار أي خطأ بدل تجاهله)
-  if (sb && user && isPro()){
-    downloadsCount++;
-    updatePlanUI();
-    sb.from('downloads').insert({ user_id: user.id }).then(({ error }) => {
-      if (error){
-        console.warn('Could not log download:', error.message);
-        $('cloudMsg').textContent = '⚠️ Downloaded, but we could not record it against your monthly count';
-      }
-    });
-  }
+  const title = ($('title').value.trim() || 'listing-post').replace(/\s+/g, '-');
+  const name  = title + (type === 'jpg' ? '.jpg' : '.png');
+
+  cv.toBlob(function(blob){
+    if (!blob){
+      $('cloudMsg').textContent = '⚠️ Could not prepare the image — please try again';
+      return;                                   // لا خصم: لم يُنتَج ملف
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a);               // بعض المتصفحات تتجاهل وسماً غير مُضاف
+    a.click();
+    setTimeout(function(){ if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+
+    /* شبكة أمان للجوال: متصفحات التطبيقات المدمجة (إنستقرام، فيسبوك)
+       تمنع التنزيل البرمجي غالباً، فيبقى رابط يفتح الصورة ليحفظها
+       المستخدم بالضغط المطوّل. صالح دقيقة كاملة. */
+    $('cloudMsg').innerHTML =
+      '✅ Ready. Download did not start? ' +
+      '<a href="' + url + '" target="_blank" rel="noopener" download="' + name + '" ' +
+      'style="color:var(--accent);font-weight:700">open the image</a> then press and hold to save it.';
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+
+    /* الخصم بعد إنتاج الملف فعلاً، لا بمجرد الضغط.
+       وإن فشل التسجيل في القاعدة نُرجع العدّاد كما كان. */
+    if (sb && user && isPro()){
+      downloadsCount++;
+      updatePlanUI();
+      sb.from('downloads').insert({ user_id: user.id }).then(({ error }) => {
+        if (error){
+          console.warn('Could not log download:', error.message);
+          downloadsCount--;
+          updatePlanUI();
+        }
+      });
+    }
+  }, type === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
 }
 $('btnPng').onclick = () => download('png');
 $('btnJpg').onclick = () => download('jpg');
