@@ -2093,7 +2093,16 @@ track('app_open');
 /* USD plan checkout link ($19/month, verified base_currency: usd).
    The Arabic edition uses a separate SAR plan in app.html — keep them apart
    so each market pays in its own currency with no FX surprises. */
-const PAYMENT_LINK = 'https://whop.com/checkout/plan_i7EDOJ6yAzUsO';
+/* الدفع المضمّن: نموذج Whop يظهر داخل الموقع بدل نقل العميل إلى whop.com.
+
+   لماذا: 37 زائراً اصطدموا ببوابة الدفع مقابل حسابين — كل خطوة خروج من
+   الموقع تفقد ناساً. والأهم أن الوضع المضمّن يسمح بتثبيت بريد الحساب
+   (prefill + disable) فيستحيل أن يدفع العميل ببريد غير بريد تسجيله،
+   وهي المشكلة التي حصلت فعلاً مع أول عميل (حسابان لنفس الشخص).
+
+   أسماء الخصائص مستخرجة من سكربت Whop نفسه لا مخمّنة. */
+const PAYMENT_PLAN_ID = 'plan_fa9qheRRrrnUO';
+const PAYMENT_LINK    = 'https://whop.com/checkout/' + PAYMENT_PLAN_ID;  // احتياطي
 /* Monthly download cap for the $19 plan — change this number only here. */
 const PRO_MONTHLY_DOWNLOADS = 30;
 let subscription = null;
@@ -2156,7 +2165,27 @@ $('btnUpgrade').onclick = () => {
   showPayGuard();
 };
 
-/* نافذة تحذير مهمة قبل الدفع: تمنع خطأ اختلاف البريد (خاصة مع Apple Pay) */
+function escAttr(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+                  .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* سكربت Whop يُحمَّل عند أول فتح للدفع فقط — لا مع كل زيارة للمحرّر. */
+let whopScript = null;
+function loadWhop(){
+  if (whopScript) return whopScript;
+  whopScript = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://js.whop.com/static/checkout/loader.js';
+    s.async = true; s.defer = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('blocked'));
+    document.head.appendChild(s);
+  });
+  return whopScript;
+}
+
+/* نافذة الدفع المضمّنة */
 function showPayGuard(){
   const email = user.email || '';
   let ov = document.getElementById('payGuard');
@@ -2165,37 +2194,57 @@ function showPayGuard(){
   ov.id = 'payGuard';
   ov.className = 'modal-back open';
   ov.innerHTML =
-    '<div class="modal" style="width:400px;text-align:center">'
-    + '<div style="font-size:34px">⚠️</div>'
-    + '<h2 style="margin:8px 0 4px">Before you pay — one important step</h2>'
-    + '<p style="font-size:13.5px;color:var(--muted);line-height:1.8;margin-bottom:14px">'
-    + 'For your plan to activate automatically you <b style="color:var(--text)">must</b> pay with the same email you signed up with:</p>'
-    + '<div style="background:var(--panel2);border:1px solid var(--accent);border-radius:10px;'
-    + 'padding:12px;font-size:16px;font-weight:800;direction:ltr;color:var(--accent);'
-    + 'user-select:all;margin-bottom:14px">' + email + '</div>'
-    + '<div style="background:#3a2a12;border:1px solid #c9821f;border-radius:10px;padding:11px 13px;'
-    + 'font-size:12.5px;line-height:1.8;text-align:start;color:#ffd699;margin-bottom:16px">'
-    + '🍎 <b>Paying with Apple Pay?</b> Change the contact email field on the checkout page '
-    + 'to the address above — Apple fills in its own relay address by default, and it will not match.</div>'
-    + '<div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;text-align:start">'
-    + '🔄 This is a <b style="color:var(--text)">recurring monthly</b> subscription at $19 — '
-    + 'you get an email receipt each renewal and can cancel any time.</div>'
-    + '<button class="btn btn-primary" id="pgGo" style="width:100%">I understand — continue to checkout</button>'
-    + '<button class="btn btn-ghost" id="pgCancel" style="width:100%;margin-top:8px">Cancel</button>'
+    '<div class="modal" style="width:450px;max-height:90vh;overflow:auto">'
+    + '<h2 style="margin:0 0 6px">Subscribe — $19/month</h2>'
+    + '<p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px">'
+    + '30 designs a month, cancel any time. Billed to '
+    + '<b style="color:var(--accent)">' + escAttr(email) + '</b> — locked, so your plan '
+    + 'activates on this account the moment payment clears.</p>'
+    /* prefill + disable معاً: البريد مثبّت ولا يستطيع العميل تغييره، فيستحيل
+       أن يدفع ببريد لا يطابق حسابه — وهذا ما كسر التفعيل مع أول عميل. */
+    + '<div id="whopBox"'
+    + ' data-whop-checkout-plan-id="' + escAttr(PAYMENT_PLAN_ID) + '"'
+    + ' data-whop-checkout-prefill-email="' + escAttr(email) + '"'
+    + ' data-whop-checkout-disable-email="true"'
+    + ' data-whop-checkout-theme="dark"'
+    + ' data-whop-checkout-theme-accent-color="#2dd4a7"'
+    + ' data-whop-checkout-skip-redirect="true"'
+    + ' style="min-height:380px"></div>'
+    + '<div id="payFallback" style="font-size:12.5px;color:var(--muted);margin-top:12px;display:none">'
+    + 'Checkout did not load (an ad blocker may be blocking it). '
+    + '<a href="' + escAttr(PAYMENT_LINK) + '" target="_blank" rel="noopener" '
+    + 'style="color:var(--accent);font-weight:700">Open checkout in a new tab</a></div>'
+    + '<button class="btn btn-ghost" id="pgCancel" style="width:100%;margin-top:12px">Close</button>'
     + '</div>';
   document.body.appendChild(ov);
-  const close = () => ov.remove();
+
+  let poll = null;
+  const close = () => { if (poll) clearInterval(poll); ov.remove(); };
   ov.querySelector('#pgCancel').onclick = close;
   ov.addEventListener('click', e => { if (e.target === ov) close(); });
-  ov.querySelector('#pgGo').onclick = () => {
-    close();
-    track('pay_click');
-    $('cloudMsg').innerHTML = 'After paying, refresh this page. Still not active after a minute? '
-      + '<b style="color:var(--accent);cursor:pointer;text-decoration:underline" id="payHelpLink">Message us</b>';
-    const hl = $('payHelpLink');
-    if (hl) hl.onclick = () => { $('supportModal').classList.add('open'); track('support_open'); };
-    window.open(PAYMENT_LINK, '_blank');
-  };
+
+  track('pay_click');
+
+  /* حاصرات الإعلانات تحجب سكربتات الدفع كثيراً — يظهر رابط بديل بدل نافذة فارغة. */
+  loadWhop().catch(() => {
+    const box = document.getElementById('whopBox');
+    if (box) box.style.display = 'none';
+    const fb = document.getElementById('payFallback');
+    if (fb) fb.style.display = 'block';
+  });
+
+  /* لا ننتظر من العميل تحديث الصفحة: نستطلع حالة الاشتراك حتى يُفعَّل.
+     كل 4 ثوانٍ لمدة 3 دقائق، ثم نتوقف حتى لا نُرهق القاعدة. */
+  let ticks = 0;
+  poll = setInterval(async () => {
+    if (++ticks > 45){ clearInterval(poll); return; }
+    await refreshPlan();
+    if (isPro()){
+      clearInterval(poll);
+      close();
+      $('cloudMsg').textContent = '⭐ Subscription active — you can download and save now';
+    }
+  }, 4000);
 }
 
 const FIELD_IDS = ['badge','ptype','title','loc','price','currency','beds','baths','area','extra1','info','agent','phone','brokerage','license'];
