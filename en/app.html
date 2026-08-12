@@ -2200,6 +2200,23 @@ function showPayGuard(){
     + '30 designs a month, cancel any time. Billed to '
     + '<b style="color:var(--accent)">' + escAttr(email) + '</b> — locked, so your plan '
     + 'activates on this account the moment payment clears.</p>'
+    /* زر الدفع السريع (Apple Pay / Google Pay) فوق نموذج البطاقة.
+
+       صفحة Whop المستضافة تعرض الاثنين معاً؛ نحن ضمّنّا النموذج وحده فاختفى
+       Apple Pay. وسكربت Whop يعطّل أحدهما تلقائياً عند استخدام الآخر
+       (data-disabled-by-peer) — أي أنهما مصمَّمان للتجاور.
+
+       لا يظهر الزر إلا على جهاز يدعمه فعلاً (Safari على أجهزة Apple، أو
+       Chrome ببطاقة محفوظة). على غيرها لا يرسم شيئاً ولا يترك فراغاً.
+
+       return-url يعود إلى المحرّر لا إلى /checkout/complete — تلك الصفحة
+       غير موجودة وكانت سترجع 404 بعد دفعة ناجحة. */
+    + '<whop-express-checkout-button'
+    + ' plan-id="' + escAttr(PAYMENT_PLAN_ID) + '"'
+    + ' prefill-email="' + escAttr(email) + '"'
+    + ' theme="dark"'
+    + ' return-url="https://aqaridesign.com/en/app.html"'
+    + '></whop-express-checkout-button>'
     /* prefill + disable معاً: البريد مثبّت ولا يستطيع العميل تغييره، فيستحيل
        أن يدفع ببريد لا يطابق حسابه — وهذا ما كسر التفعيل مع أول عميل. */
     + '<div id="whopBox"'
