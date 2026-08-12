@@ -1821,25 +1821,37 @@ function download(type){
     /* شبكة أمان للجوال: لو لم يبدأ التنزيل (متصفحات التطبيقات المدمجة
        داخل إنستقرام وواتساب تمنعه غالباً) يبقى رابط يفتح الصورة ليحفظها
        المستخدم بالضغط المطوّل. الرابط صالح دقيقة كاملة. */
-    $('cloudMsg').innerHTML =
-      '✅ جاهز. لم يبدأ التحميل؟ ' +
+    const okMsg = '✅ جاهز. لم يبدأ التحميل؟ ' +
       '<a href="' + url + '" target="_blank" rel="noopener" download="' + name + '" ' +
       'style="color:var(--accent);font-weight:700">افتح الصورة</a> ثم اضغط عليها مطوّلاً واحفظها.';
+    $('cloudMsg').innerHTML = okMsg;
     setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
 
     /* الخصم بعد إنتاج الملف فعلاً، لا بمجرد الضغط.
-       وإن فشل التسجيل في القاعدة نُرجع العدّاد كما كان — الحصة الشهرية
-       تُقرأ من القاعدة عند كل دخول، فإبقاؤها منقوصة محلياً يظلم المشترك. */
+
+       والتسجيل يُعاد مرة واحدة بعد تجديد الجلسة: رمز الدخول ينتهي بعد
+       ساعة، وصفحة بقيت مفتوحة تفشل عندها سياسة auth.uid() = user_id
+       بلا سبب ظاهر. وإن فشل بعد التجديد نُرجع العدّاد ونُظهر الخطأ —
+       لا نُخفيه: الأعطال الصامتة هي التي كلّفتنا هذا العميل أصلاً. */
     if (sb && user && isPro()){
       downloadsCount++;
       updatePlanUI();
-      sb.from('downloads').insert({ user_id: user.id }).then(({ error }) => {
-        if (error){
-          console.warn('تعذّر تسجيل التحميل:', error.message);
+      const logIt = (retried) => {
+        sb.from('downloads').insert({ user_id: user.id }).then(({ error }) => {
+          if (!error) return;
+          if (!retried){
+            sb.auth.refreshSession().then(() => logIt(true));
+            return;
+          }
+          console.error('تعذّر تسجيل التحميل:', error.message);
           downloadsCount--;
           updatePlanUI();
-        }
-      });
+          $('cloudMsg').innerHTML = okMsg +
+            '<div style="margin-top:6px;color:#e0a33a;font-size:12px">' +
+            '⚠️ لم يُحتسب من رصيدك (' + error.message + ')</div>';
+        });
+      };
+      logIt(false);
     }
   }, type === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
 }
