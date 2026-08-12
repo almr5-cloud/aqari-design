@@ -49,8 +49,8 @@
   "image": "https://aqaridesign.com/og-image.png",
   "offers": {
     "@type": "Offer",
-    "price": "49",
-    "priceCurrency": "SAR",
+    "price": "19.99",
+    "priceCurrency": "USD",
     "description": "اشتراك شهري — تحميل وحفظ بلا حدود"
   },
   "audience": {
@@ -343,7 +343,7 @@
       </div>
       <div style="display:flex;gap:11px;align-items:flex-start">
         <span class="hstep">4</span>
-        <div><b>سجّل واشترك</b><br><span style="color:var(--muted);font-size:12.5px">التصميم والمعاينة مجاناً. للتحميل والحفظ: سجّل حساب واشترك بـ49 ريال/شهرياً (ادفع بنفس بريدك المسجّل).</span></div>
+        <div><b>سجّل واشترك</b><br><span style="color:var(--muted);font-size:12.5px">التصميم والمعاينة مجاناً. للتحميل والحفظ: سجّل حساب واشترك بـ19.99 دولار/شهرياً (ادفع بنفس بريدك المسجّل).</span></div>
       </div>
       <div style="display:flex;gap:11px;align-items:flex-start">
         <span class="hstep">5</span>
@@ -372,7 +372,7 @@
         <p style="font-size:12.5px;color:var(--muted)">الحفظ السحابي غير مفعّل بعد — املأ SUPABASE_URL و SUPABASE_ANON_KEY في أعلى كود الصفحة.</p>
       </div>
       <div id="cloudOut" style="display:none">
-        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px">صمّم وعاين مجاناً — التحميل والحفظ باشتراك 49 ريال/شهرياً</p>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px">صمّم وعاين مجاناً — التحميل والحفظ باشتراك 19.99 دولار/شهرياً</p>
         <button class="btn btn-primary" style="width:100%" id="btnOpenAuth">تسجيل الدخول / إنشاء حساب</button>
       </div>
       <div id="cloudIn" style="display:none">
@@ -385,7 +385,7 @@
         <p id="cloudMsg" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></p>
         <div id="planBox" style="margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)">
           <div id="planLine" style="font-size:12.5px;color:var(--muted)">…</div>
-          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ اشترك الآن — 49 ريال/شهر</button>
+          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ اشترك الآن — 19.99 دولار/شهر</button>
         </div>
       </div>
     </div>
@@ -1917,8 +1917,8 @@ track('app_open');
 
 /* ==================== الاشتراك إلزامي: لا خطة مجانية ==================== */
 /* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
-const PAYMENT_LINK = 'https://whop.com/checkout/plan_wzMYLXlMcIzes/';
-/* حد التحميلات الشهري لباقة 49 ريال — غيّر الرقم هنا فقط */
+const PAYMENT_LINK = 'https://whop.com/checkout/plan_fa9qheRRrrnUO';
+/* حد التحميلات الشهري لباقة 19.99 دولار — غيّر الرقم هنا فقط */
 const PRO_MONTHLY_DOWNLOADS = 30;
 let subscription = null;
 let downloadsCount = 0;
@@ -1937,9 +1937,9 @@ function requirePro(actionName){
     openAuth();
     const msg = $('authMsg');
     msg.className = 'msg err';
-    msg.textContent = 'سجّل الدخول ثم فعّل اشتراكك (49 ريال/شهر) لتتمكن من ' + actionName;
+    msg.textContent = 'سجّل الدخول ثم فعّل اشتراكك (19.99 دولار/شهر) لتتمكن من ' + actionName;
   } else {
-    $('cloudMsg').textContent = '⭐ ' + actionName + ' يتطلب اشتراكاً نشطاً — 49 ريال/شهرياً';
+    $('cloudMsg').textContent = '⭐ ' + actionName + ' يتطلب اشتراكاً نشطاً — 19.99 دولار/شهرياً';
     $('btnUpgrade').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   return false;
@@ -2002,7 +2002,7 @@ function showPayGuard(){
     + '🍎 <b>لو دفعت بـ Apple Pay:</b> غيّر خانة «جهة الاتصال / البريد» في صفحة الدفع '
     + 'إلى بريدك أعلاه — لأن Apple تضع بريدك الخاص بها تلقائياً وهو غالباً مختلف.</div>'
     + '<div style="font-size:12px;line-height:1.7;color:var(--muted);margin-bottom:16px;text-align:right">'
-    + '🔄 اشتراك <b style="color:var(--text)">شهري متجدد تلقائياً</b> بـ49 ريال — '
+    + '🔄 اشتراك <b style="color:var(--text)">شهري متجدد تلقائياً</b> بـ19.99 دولار — '
     + 'ويصلك إيصال بالإيميل مع كل تجديد، وتقدر تلغي في أي وقت.</div>'
     + '<button class="btn btn-primary" id="pgGo" style="width:100%">فهمت وأوافق — متابعة للدفع</button>'
     + '<button class="btn btn-ghost" id="pgCancel" style="width:100%;margin-top:8px">إلغاء</button>'

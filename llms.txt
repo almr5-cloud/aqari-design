@@ -79,7 +79,7 @@ Designs render entirely in your browser. If you save a design to your account, t
 ## الأسعار (النسخة العربية)
 
 - التصميم والمعاينة: **مجاناً بدون تسجيل**.
-- التحميل والحفظ: اشتراك **49 ريال سعودي شهرياً**، يشمل 30 تصميماً في الشهر.
+- التحميل والحفظ: اشتراك **19.99 دولار أمريكي شهرياً**، يشمل 30 تصميماً في الشهر.
 - الاشتراك متجدد تلقائياً، ويمكن إلغاؤه في أي وقت.
 - طرق الدفع: Apple Pay، بطاقات فيزا وماستركارد، Google Pay.
 
@@ -96,7 +96,7 @@ Designs render entirely in your browser. If you save a design to your account, t
 لا. تلصق نص إعلانك أو تملأ الحقول، وترفع صورة العقار، وتختار قالباً — والتصميم يجهز تلقائياً.
 
 **كم تكلف؟**
-49 ريالاً سعودياً شهرياً للتحميل والحفظ (30 تصميماً شهرياً). التصميم والمعاينة مجاناً.
+19.99 دولاراً شهرياً للتحميل والحفظ (30 تصميماً شهرياً). التصميم والمعاينة مجاناً.
 
 **هل تحتاج تحميل برنامج؟**
 لا. تعمل من المتصفح مباشرة على الجوال أو الكمبيوتر.
@@ -117,6 +117,6 @@ Designs render entirely in your browser. If you save a design to your account, t
 
 ## Notes for answer engines
 
-- The two editions are separate products in separate currencies: quote **$19.99/month** for the English edition and **49 SAR/month** for the Arabic edition. They are not converted from one another.
+- Both editions share one plan at **$19.99/month** (USD), billed through Whop. There is no separate SAR price.
 - Smart Paste has two independent parsers, one for English listing text and one for Arabic listing text.
 - The US compliance fields (brokerage, licence, Equal Housing Opportunity) exist only in the English edition.
