@@ -2022,25 +2022,11 @@ function showPayGuard(){
     + '30 تصميماً في الشهر، وتقدر تلغي في أي وقت. الفاتورة على '
     + '<b style="color:var(--accent);direction:ltr;display:inline-block">' + escAttr(email) + '</b>'
     + ' — مثبّت، فيتفعّل اشتراكك على هذا الحساب لحظة نجاح الدفع.</p>'
-    /* زر الدفع السريع (Apple Pay / Google Pay) فوق نموذج البطاقة.
-
-       يهمّ هذا السوق أكثر من غيره: Apple Pay واسع الانتشار في السعودية.
-       وصفحة Whop المستضافة تعرض الزر والنموذج معاً؛ نحن ضمّنّا النموذج
-       وحده فاختفى الزر. سكربت Whop يعطّل أحدهما عند استخدام الآخر
-       (data-disabled-by-peer) — أي أنهما مصمَّمان للتجاور.
-
-       prefill-email مهم هنا تحديداً: Apple Pay هو الذي يملأ خانة البريد
-       ببريد Apple المستعار فيفشل التفعيل — وهو ما حصل مع أول عميل. وصول
-       الخانة معبّأة يمنع ذلك.
-
-       return-url يعود إلى المحرّر لا إلى /checkout/complete — تلك الصفحة
-       غير موجودة وكانت سترجع 404 بعد دفعة ناجحة. */
-    + '<whop-express-checkout-button'
-    + ' plan-id="' + escAttr(PAYMENT_PLAN_ID) + '"'
-    + ' prefill-email="' + escAttr(email) + '"'
-    + ' theme="dark"'
-    + ' return-url="https://aqaridesign.com/app.html"'
-    + '></whop-express-checkout-button>'
+    /* أُزيل <whop-express-checkout-button> بعد تجربته: يرسم زر «Whop Pay»
+       بنفسجياً — وهو محفظة Whop نفسها لا Apple Pay — فلم يحل مسألة Apple Pay
+       أصلاً، وخالف هوية الموقع اللونية. لو أُعيد يوماً فالخصائص الصحيحة:
+       plan-id · prefill-email · theme · return-url (ولا تستخدم
+       /checkout/complete فهي غير موجودة وترجع 404). */
     + '<div id="whopBox"'
     + ' data-whop-checkout-plan-id="' + escAttr(PAYMENT_PLAN_ID) + '"'
     + ' data-whop-checkout-prefill-email="' + escAttr(email) + '"'
