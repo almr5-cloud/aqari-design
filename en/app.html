@@ -44,7 +44,7 @@
   "operatingSystem": "Web",
   "inLanguage": "en",
   "image": "https://aqaridesign.com/og-image.png",
-  "offers": { "@type": "Offer", "price": "19", "priceCurrency": "USD", "description": "Monthly subscription including 30 designs" },
+  "offers": { "@type": "Offer", "price": "19.99", "priceCurrency": "USD", "description": "Monthly subscription including 30 designs" },
   "audience": { "@type": "Audience", "audienceType": "Real estate agents" },
   "featureList": [
     "Six listing-post templates built for real estate",
@@ -362,7 +362,7 @@
         <p id="cloudMsg" style="font-size:12px;color:var(--muted);margin-top:8px;min-height:16px"></p>
         <div id="planBox" style="margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)">
           <div id="planLine" style="font-size:12.5px;color:var(--muted)">…</div>
-          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ Subscribe — $19/month</button>
+          <button class="btn btn-primary btn-sm" id="btnUpgrade" style="width:100%;margin-top:8px;display:none">⭐ Subscribe — $19.99/month</button>
         </div>
       </div>
     </div>
@@ -2090,7 +2090,7 @@ track('app_open');
 
 /* ==================== الاشتراك إلزامي: لا خطة مجانية ==================== */
 /* رابط صفحة الدفع لاشتراك Pro — يقبل رابط Whop أو Stripe أو ميسر أو أي بوابة */
-/* USD plan checkout link ($19/month, verified base_currency: usd).
+/* USD plan checkout link ($19.99/month).
    The Arabic edition uses a separate SAR plan in app.html — keep them apart
    so each market pays in its own currency with no FX surprises. */
 /* الدفع المضمّن: نموذج Whop يظهر داخل الموقع بدل نقل العميل إلى whop.com.
@@ -2103,7 +2103,7 @@ track('app_open');
    أسماء الخصائص مستخرجة من سكربت Whop نفسه لا مخمّنة. */
 const PAYMENT_PLAN_ID = 'plan_fa9qheRRrrnUO';
 const PAYMENT_LINK    = 'https://whop.com/checkout/' + PAYMENT_PLAN_ID;  // احتياطي
-/* Monthly download cap for the $19 plan — change this number only here. */
+/* Monthly download cap for the $19.99 plan — change this number only here. */
 const PRO_MONTHLY_DOWNLOADS = 30;
 let subscription = null;
 let downloadsCount = 0;
@@ -2122,9 +2122,9 @@ function requirePro(actionName){
     openAuth();
     const msg = $('authMsg');
     msg.className = 'msg err';
-    msg.textContent = actionName + ' requires an account and an active $19/month subscription.';
+    msg.textContent = actionName + ' requires an account and an active $19.99/month subscription.';
   } else {
-    $('cloudMsg').textContent = '⭐ ' + actionName + ' requires an active subscription — $19/month';
+    $('cloudMsg').textContent = '⭐ ' + actionName + ' requires an active subscription — $19.99/month';
     $('btnUpgrade').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   return false;
@@ -2195,7 +2195,7 @@ function showPayGuard(){
   ov.className = 'modal-back open';
   ov.innerHTML =
     '<div class="modal" style="width:450px;max-height:90vh;overflow:auto">'
-    + '<h2 style="margin:0 0 6px">Subscribe — $19/month</h2>'
+    + '<h2 style="margin:0 0 6px">Subscribe — $19.99/month</h2>'
     + '<p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px">'
     + '30 designs a month, cancel any time. Billed to '
     + '<b style="color:var(--accent)">' + escAttr(email) + '</b> — locked, so your plan '
