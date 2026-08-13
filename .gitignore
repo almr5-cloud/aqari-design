@@ -59,3 +59,7 @@ Stunning-Family-Home.png
 
 # مصدر صور التواصل — الصور الناتجة في marketing/
 _ba.html
+
+# تصاميم مُصدَّرة وملفات دخلت بالخطأ عبر git add -A
+*.avif
+==.png
