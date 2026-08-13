@@ -1795,6 +1795,83 @@ cv.addEventListener('pointermove', e => {
 cv.addEventListener('pointerup', () => dragging = false);
 
 /* التحميل — للمشتركين فقط وضمن حد الباقة الشهري */
+/* متصفحات التطبيقات المدمجة — إنستقرام وفيسبوك وغيرها.
+   هذه تحديداً هي التي يأتي منها الوسيط: يفتح الرابط من البايو أو من رسالة. */
+const IN_APP_BROWSER = /Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|Twitter|Pinterest/i
+  .test(navigator.userAgent);
+
+/* تسليم الصورة للمستخدم.
+
+   لماذا لا يكفي <a download>: في متصفح إنستقرام لا يعمل التنزيل البرمجي،
+   وفتح رابط blob: مباشرة يعرض الصورة **كمستند لا كعنصر صورة** فيختفي خيار
+   «حفظ الصورة» من قائمة الضغط المطوّل. وAndroid WebView لا يستطيع تنزيل
+   روابط blob: عبر مدير التنزيل أصلاً. جُرّب فعلياً من داخل إنستقرام: الصورة
+   ظهرت ولم تُحفظ.
+
+   ثلاثة مسارات مرتبة بالموثوقية:
+   1. navigator.share بملف → ورقة النظام وفيها «حفظ الصورة». الأوثق على
+      الجوال، ويجب استدعاؤه داخل نقرة المستخدم لا تلقائياً.
+   2. <img> حقيقي داخل الصفحة → الضغط المطوّل عليه يعطي «حفظ الصورة».
+   3. <a download> → يكفي على الكمبيوتر.                                   */
+function deliverImage(blob, name){
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+
+  let canShare = false;
+  let file = null;
+  try {
+    file = new File([blob], name, { type: blob.type });
+    canShare = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+  } catch(e){}
+
+  /* على الكمبيوتر يكفي سطر صغير — لا نُغرق الشاشة بنافذة بلا داعٍ. */
+  if (!IN_APP_BROWSER && !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    $('cloudMsg').innerHTML = '✅ نُزّلت إلى مجلد التنزيلات. لم تجدها؟ '
+      + '<a href="' + url + '" download="' + name + '" '
+      + 'style="color:var(--accent);font-weight:700">نزّلها مرة أخرى</a>';
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 120000);
+    return;
+  }
+
+  const ov = document.createElement('div');
+  ov.id = 'dlModal';                          // معرّف خاص: الصفحة فيها نوافذ modal-back أخرى
+  ov.className = 'modal-back open';
+  ov.innerHTML =
+    '<div class="modal" style="width:340px;text-align:center">'
+    + '<h2 style="margin:0 0 10px;font-size:19px">تصميمك جاهز</h2>'
+    + (canShare
+        ? '<button class="btn btn-primary" id="dlShare" style="width:100%;margin-bottom:12px">'
+          + '📥 احفظ الصورة في جوالك</button>'
+        : '')
+    + '<img src="' + url + '" alt="' + name + '" '
+    + 'style="width:100%;border-radius:12px;border:1px solid var(--border)">'
+    + '<p style="font-size:12.5px;color:var(--muted);line-height:1.8;margin-top:10px">'
+    + 'اضغط مطوّلاً على الصورة فوق، ثم اختر <b style="color:var(--text)">حفظ الصورة</b>.</p>'
+    + (IN_APP_BROWSER
+        ? '<p style="font-size:12px;color:#e0a33a;line-height:1.8;margin-top:8px">'
+          + 'ما زالت لا تُحفظ؟ متصفح إنستقرام المدمج يمنع التنزيل. '
+          + 'افتح <b>aqaridesign.com</b> في سفاري أو كروم.</p>'
+        : '')
+    + '<button class="btn btn-ghost" id="dlClose" style="width:100%;margin-top:12px">تم</button>'
+    + '</div>';
+  document.body.appendChild(ov);
+
+  const shut = () => { ov.remove(); URL.revokeObjectURL(url); };
+  ov.querySelector('#dlClose').onclick = shut;
+  ov.addEventListener('click', e => { if (e.target === ov) shut(); });
+
+  const sh = ov.querySelector('#dlShare');
+  if (sh) sh.onclick = () => {
+    /* داخل نقرة المستخدم — iOS يرفض المشاركة خارج إيماءة مباشرة */
+    navigator.share({ files: [file], title: name }).catch(() => {});
+  };
+}
+
 function download(type){
   if (!requirePro('تحميل أكثر من تصميم')) return;
   if (sb && user && isPro() && downloadsCount >= PRO_MONTHLY_DOWNLOADS){
@@ -1811,21 +1888,7 @@ function download(type){
       $('cloudMsg').textContent = '⚠️ تعذّر تجهيز الصورة — أعد المحاولة';
       return;                                   // لا خصم: لم يُنتَج ملف
     }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = name; a.style.display = 'none';
-    document.body.appendChild(a);               // بعض المتصفحات تتجاهل وسماً غير مُضاف
-    a.click();
-    setTimeout(function(){ if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
-
-    /* شبكة أمان للجوال: لو لم يبدأ التنزيل (متصفحات التطبيقات المدمجة
-       داخل إنستقرام وواتساب تمنعه غالباً) يبقى رابط يفتح الصورة ليحفظها
-       المستخدم بالضغط المطوّل. الرابط صالح دقيقة كاملة. */
-    const okMsg = '✅ جاهز. لم يبدأ التحميل؟ ' +
-      '<a href="' + url + '" target="_blank" rel="noopener" download="' + name + '" ' +
-      'style="color:var(--accent);font-weight:700">افتح الصورة</a> ثم اضغط عليها مطوّلاً واحفظها.';
-    $('cloudMsg').innerHTML = okMsg;
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    deliverImage(blob, name);
 
     /* الخصم بعد إنتاج الملف فعلاً، لا بمجرد الضغط.
 
