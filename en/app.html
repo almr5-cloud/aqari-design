@@ -15,8 +15,9 @@
 <link rel="alternate" hreflang="ar" href="https://aqaridesign.com/app.html">
 <link rel="alternate" hreflang="en" href="https://aqaridesign.com/en/app.html">
 <link rel="alternate" hreflang="x-default" href="https://aqaridesign.com/en/app.html">
-<link rel="icon" type="image/png" href="../logo.png">
-<link rel="apple-touch-icon" href="../logo.png">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Aqari Design">
@@ -353,7 +354,7 @@
         <button class="btn btn-primary" style="width:100%" id="btnOpenAuth">Sign in / Create account</button>
       </div>
       <div id="cloudIn" style="display:none">
-        <label class="fld">Design name</label>
+        <label class="fld" for="designName">Design name</label>
         <div style="display:flex;gap:8px">
           <input type="text" id="designName" placeholder="Maple Street listing" maxlength="40">
           <button class="btn btn-primary btn-sm" id="btnSaveDesign" style="flex-shrink:0">💾 Save</button>
@@ -396,7 +397,7 @@
         <small>JPG or PNG — exterior or interior</small>
       </div>
       <input type="file" id="fileImg" accept="image/*" hidden>
-      <label class="fld">Zoom <span style="color:var(--muted);font-weight:400">(drag in the preview to reposition)</span></label>
+      <label class="fld" for="zoom">Zoom <span style="color:var(--muted);font-weight:400">(drag in the preview to reposition)</span></label>
       <input type="range" id="zoom" min="100" max="300" value="100">
       <label class="fld">Extra photos for the Gallery template (up to 3)</label>
       <button class="btn btn-ghost" style="width:100%" id="btnExtra">⬆ Upload extra photos</button>
@@ -406,7 +407,7 @@
 
     <div class="section">
       <h3>✨ Smart Paste</h3>
-      <label class="fld">Paste your listing text — from the MLS, an email or a caption — and the fields fill themselves.</label>
+      <label class="fld" for="smartText">Paste your listing text — from the MLS, an email or a caption — and the fields fill themselves.</label>
       <textarea id="smartText" placeholder="JUST LISTED in Westlake!
 Stunning 4 bed / 3 bath single family home
 2,450 sqft on a 0.25 acre corner lot
@@ -422,7 +423,7 @@ Lone Star Realty"></textarea>
       <h3>🏷️ Listing details</h3>
       <div class="row2">
         <div>
-          <label class="fld">Status</label>
+          <label class="fld" for="badge">Status</label>
           <select id="badge">
             <option>For Sale</option>
             <option>For Rent</option>
@@ -432,7 +433,7 @@ Lone Star Realty"></textarea>
           </select>
         </div>
         <div>
-          <label class="fld">Property type</label>
+          <label class="fld" for="ptype">Property type</label>
           <select id="ptype">
             <option>Single Family</option>
             <option>Condo</option>
@@ -447,17 +448,17 @@ Lone Star Realty"></textarea>
           </select>
         </div>
       </div>
-      <label class="fld">Headline</label>
+      <label class="fld" for="title">Headline</label>
       <input type="text" id="title" value="Stunning Family Home" maxlength="40">
-      <label class="fld">Location</label>
+      <label class="fld" for="loc">Location</label>
       <input type="text" id="loc" value="Austin, TX &#8212; Westlake" maxlength="40">
       <div class="row2">
         <div>
-          <label class="fld">Price (leave blank for Call for price)</label>
+          <label class="fld" for="price">Price (leave blank for Call for price)</label>
           <input type="text" id="price" value="875000" inputmode="numeric">
         </div>
         <div>
-          <label class="fld">Currency</label>
+          <label class="fld" for="currency">Currency</label>
           <select id="currency">
             <option>$</option>
             <option>USD</option>
@@ -467,7 +468,7 @@ Lone Star Realty"></textarea>
           </select>
         </div>
       </div>
-      <label class="fld">Extra line (optional)</label>
+      <label class="fld" for="info">Extra line (optional)</label>
       <input type="text" id="info" placeholder="e.g. Corner lot &#183; New roof 2024" maxlength="50">
       <div id="infoList"></div>
       <button class="btn btn-ghost btn-sm" id="btnAddInfo" style="width:100%;margin-top:8px">➕ Add another line</button>
@@ -476,11 +477,11 @@ Lone Star Realty"></textarea>
     <div class="section">
       <h3>🛏️ Features</h3>
       <div class="row3">
-        <div><label class="fld">Beds</label><input type="text" id="beds" value="4" inputmode="numeric"></div>
-        <div><label class="fld">Baths</label><input type="text" id="baths" value="3" inputmode="numeric"></div>
-        <div><label class="fld">Sq ft</label><input type="text" id="area" value="2,450" inputmode="numeric"></div>
+        <div><label class="fld" for="beds">Beds</label><input type="text" id="beds" value="4" inputmode="numeric"></div>
+        <div><label class="fld" for="baths">Baths</label><input type="text" id="baths" value="3" inputmode="numeric"></div>
+        <div><label class="fld" for="area">Sq ft</label><input type="text" id="area" value="2,450" inputmode="numeric"></div>
       </div>
-      <label class="fld">Extra feature (optional)</label>
+      <label class="fld" for="extra1">Extra feature (optional)</label>
       <input type="text" id="extra1" placeholder="e.g. Pool &#183; 2-car garage" maxlength="25">
       <div id="specList"></div>
       <button class="btn btn-ghost btn-sm" id="btnAddSpec" style="width:100%;margin-top:8px">➕ Add another feature</button>
@@ -488,17 +489,17 @@ Lone Star Realty"></textarea>
 
     <div class="section">
       <h3>👤 Agent &amp; brokerage</h3>
-      <label class="fld">Agent name</label>
+      <label class="fld" for="agent">Agent name</label>
       <input type="text" id="agent" value="Jordan Reyes" maxlength="35">
-      <label class="fld">Phone</label>
+      <label class="fld" for="phone">Phone</label>
       <input type="tel" id="phone" value="(512) 555-0142" maxlength="20">
       <label class="fld">Logo (optional)</label>
       <button class="btn btn-ghost" style="width:100%" id="btnLogo">⬆ Upload logo</button>
       <input type="file" id="fileLogo" accept="image/*" hidden>
 
-      <label class="fld" style="margin-top:14px">Brokerage name</label>
+      <label class="fld" for="brokerage" style="margin-top:14px">Brokerage name</label>
       <input type="text" id="brokerage" placeholder="e.g. Keller Williams Realty" maxlength="40">
-      <label class="fld">License number</label>
+      <label class="fld" for="license">License number</label>
       <input type="text" id="license" placeholder="e.g. 0123456" maxlength="20">
       <label class="chk" style="display:flex;align-items:center;gap:9px;margin-top:12px;cursor:pointer;font-size:13px;color:var(--muted)">
         <input type="checkbox" id="eho" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
@@ -519,7 +520,7 @@ Lone Star Realty"></textarea>
         <div class="color-dot" style="background:#e74c3c" data-c="#e74c3c"></div>
         <div class="color-dot" style="background:#8e44ad" data-c="#8e44ad"></div>
         <div class="color-dot" style="background:#16324f" data-c="#16324f"></div>
-        <input type="color" id="customColor" value="#c9a227" title="Custom color">
+        <input type="color" id="customColor" value="#c9a227" title="Custom color" aria-label="Custom color">
       </div>
     </div>
   </aside>
@@ -539,9 +540,9 @@ Lone Star Realty"></textarea>
       <button class="btn btn-primary" id="tabLogin">Sign in</button>
       <button class="btn btn-ghost" id="tabSignup">Sign up</button>
     </div>
-    <label class="fld" id="authEmailLabel">Email</label>
+    <label class="fld" for="authEmail" id="authEmailLabel">Email</label>
     <input type="text" id="authEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
-    <label class="fld">Password</label>
+    <label class="fld" for="authPass">Password</label>
     <input type="password" id="authPass" placeholder="At least 6 characters" dir="ltr" autocomplete="current-password">
     <button id="btnForgot" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;text-decoration:underline;padding:0">Forgot your password?</button>
     <button class="btn btn-primary" style="width:100%;margin-top:12px" id="btnAuthGo">Sign in</button>
@@ -2057,6 +2058,11 @@ function download(type){
     $('planBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
+  /* تُسجَّل المحاولة هنا — بعد اجتياز البوابات وقبل إنتاج الملف.
+     الفارق بين عدد هذه الأحداث وعدد صفوف جدول downloads هو بالضبط
+     عدد المرات التي ضغط فيها عميل ولم تصله صورة. غياب هذا القياس هو
+     ما جعل زر تحميل مكسور يمرّ شهراً وهو يُقرأ كعزوف عن المنتج. */
+  track('download');
   render();
   const title = ($('title').value.trim() || 'listing-post').replace(/\s+/g, '-');
   const name  = title + (type === 'jpg' ? '.jpg' : '.png');

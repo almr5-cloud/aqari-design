@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الصفحة غير موجودة | عقاري ديزاين</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<style>
+  /* بلا خط ثمانية عمداً: صفحة الخطأ لا تستحق تحميل 80 كيلوبايت من الخطوط
+     قبل أن يرى الزائر طريق العودة. خطوط النظام تكفي هنا. */
+  :root{
+    --bg:#0f1219; --panel:#171c26; --border:#2a3242;
+    --text:#e8ecf4; --muted:#8b94a7; --accent:#2dd4a7;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    background:var(--bg); color:var(--text); min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    font-family:system-ui,'Segoe UI',Tahoma,sans-serif; line-height:1.75;
+  }
+  .card{max-width:520px; width:100%; text-align:center}
+  .mark{width:64px; height:64px; margin:0 auto 22px}
+  .code{
+    font-size:13px; font-weight:700; letter-spacing:.14em;
+    color:var(--accent); margin-bottom:10px;
+  }
+  h1{font-size:clamp(22px,5vw,28px); line-height:1.4; margin-bottom:12px}
+  p{color:var(--muted); margin-bottom:26px; font-size:15px}
+  .btns{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+  a.btn{
+    display:inline-block; padding:11px 20px; border-radius:11px;
+    text-decoration:none; font-weight:700; font-size:14.5px;
+    border:1px solid var(--border); color:var(--text); background:var(--panel);
+    transition:border-color .15s, transform .15s;
+  }
+  a.btn:hover{border-color:var(--accent); transform:translateY(-1px)}
+  a.btn.primary{background:var(--accent); color:#06231c; border-color:var(--accent)}
+  .alt{
+    margin-top:30px; padding-top:20px; border-top:1px solid var(--border);
+    font-size:13.5px; color:var(--muted);
+  }
+  .alt a{color:var(--accent); text-decoration:none; font-weight:700}
+  .alt a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+  <div class="card">
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="#171c26"/>
+      <path d="M32 12 L58 33 h-7 v20 H13 V33 H6 Z" fill="#2dd4a7"/>
+      <path d="M32 34 a6 6 0 0 1 6 6 v13 H26 V40 a6 6 0 0 1 6-6 z" fill="#171c26"/>
+    </svg>
+
+    <div class="code">404</div>
+    <h1 id="t">هذه الصفحة غير موجودة</h1>
+    <p id="d">الرابط الذي فتحته غير صحيح أو تغيّر. يمكنك العودة من هنا:</p>
+
+    <div class="btns" id="b">
+      <a class="btn primary" href="/app.html">افتح المحرّر</a>
+      <a class="btn" href="/">الصفحة الرئيسية</a>
+      <a class="btn" href="/about.html">عن المنصة</a>
+    </div>
+
+    <div class="alt" id="alt">
+      Looking for the English site? <a href="/en/">aqaridesign.com/en</a>
+    </div>
+  </div>
+
+<script>
+/* GitHub Pages يخدم ملف 404 واحداً للدومين كله، والموقع بنسختين.
+   إن كان المسار المطلوب تحت ‎/en/‎ نقلب الصفحة إلى الإنجليزية —
+   الأصل عربي ليعمل بلا جافاسكربت على النطاق الجذر. */
+if (location.pathname.toLowerCase().indexOf('/en/') === 0) {
+  var h = document.documentElement;
+  h.lang = 'en'; h.dir = 'ltr';
+  document.title = 'Page not found | Aqari Design';
+  document.getElementById('t').textContent = 'This page does not exist';
+  document.getElementById('d').textContent =
+    'The link you opened is wrong or has moved. You can head back from here:';
+  document.getElementById('b').innerHTML =
+    '<a class="btn primary" href="/en/app.html">Open the editor</a>' +
+    '<a class="btn" href="/en/">Home</a>' +
+    '<a class="btn" href="/en/about.html">About</a>';
+  document.getElementById('alt').innerHTML =
+    'تبحث عن النسخة العربية؟ <a href="/">aqaridesign.com</a>';
+}
+</script>
+</body>
+</html>

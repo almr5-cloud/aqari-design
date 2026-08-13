@@ -6,7 +6,7 @@
 <meta name="google-site-verification" content="Y0hev5SAt3O5KkA5GN4ubzSjeTaKGEKI40E_W0mTTyk" />
 
 <title>المحرّر | عقاري ديزاين — صمّم منشور عقارك الآن</title>
-<meta name="description" content="عقاري ديزاين منصة سعودية للوسطاء العقاريين لتصميم منشورات وإعلانات العقارات (فلل، شقق، أراضٍ) لإنستقرام في دقيقة — الصق إعلانك واحصل على تصميم احترافي جاهز للنشر بخط ثمانية.">
+<meta name="description" content="افتح المحرّر وصمّم منشور عقارك الآن: الصق إعلانك، اختر قالباً من ستة، وحمّل التصميم جاهزاً لإنستقرام في أقل من دقيقة.">
 <meta name="keywords" content="تصميم إعلانات عقارية, مصمم منشورات عقار, تصميم صور العقارات, وسيط عقاري, إعلانات عقارية إنستقرام, تصميم عقاري, عقاري ديزاين, تصميم إعلان فيلا, تصميم إعلان شقة">
 <meta name="author" content="عقاري ديزاين">
 <meta name="robots" content="index, follow">
@@ -15,8 +15,9 @@
 <link rel="alternate" hreflang="ar" href="https://aqaridesign.com/app.html">
 <link rel="alternate" hreflang="en" href="https://aqaridesign.com/en/app.html">
 <link rel="alternate" hreflang="x-default" href="https://aqaridesign.com/en/app.html">
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 <!-- Open Graph (واتساب / فيسبوك / لينكدإن) -->
 <meta property="og:type" content="website">
@@ -285,7 +286,9 @@
 <header>
   <div class="brand">
     <img class="logo" src="logo.png" alt="شعار عقاري ديزاين">
-    <div>عقاري ديزاين<small>مصمم منشورات إنستقرام للوسطاء العقاريين — بخط ثمانية</small></div>
+    <!-- h1 لا div: الصفحة مفهرسة وكانت بلا عنوان رئيسي. font/margin موروثان
+         من .brand حتى لا يتغيّر المظهر إطلاقاً. -->
+    <h1 style="font:inherit;margin:0">عقاري ديزاين<small>مصمم منشورات إنستقرام للوسطاء العقاريين — بخط ثمانية</small></h1>
   </div>
   <div class="header-actions">
     <a class="btn btn-ghost btn-sm" href="about.html" style="text-decoration:none;display:inline-block" title="عن المنصة والأسئلة الشائعة">عن المنصة</a>
@@ -376,7 +379,7 @@
         <button class="btn btn-primary" style="width:100%" id="btnOpenAuth">تسجيل الدخول / إنشاء حساب</button>
       </div>
       <div id="cloudIn" style="display:none">
-        <label class="fld">اسم التصميم</label>
+        <label class="fld" for="designName">اسم التصميم</label>
         <div style="display:flex;gap:8px">
           <input type="text" id="designName" placeholder="فيلا النرجس" maxlength="40">
           <button class="btn btn-primary btn-sm" id="btnSaveDesign" style="flex-shrink:0">💾 حفظ</button>
@@ -419,7 +422,7 @@
         <small>JPG / PNG — صورة الفيلا أو العقار</small>
       </div>
       <input type="file" id="fileImg" accept="image/*" hidden>
-      <label class="fld">تكبير الصورة <span style="color:var(--muted);font-weight:400">(اسحب الصورة في المعاينة لتحريكها)</span></label>
+      <label class="fld" for="zoom">تكبير الصورة <span style="color:var(--muted);font-weight:400">(اسحب الصورة في المعاينة لتحريكها)</span></label>
       <input type="range" id="zoom" min="100" max="300" value="100">
       <label class="fld">صور إضافية لقالب «معرض» (حتى 3 صور — واحدة أو أكثر في كل مرة)</label>
       <button class="btn btn-ghost" style="width:100%" id="btnExtra">⬆ رفع الصور الإضافية</button>
@@ -429,7 +432,7 @@
 
     <div class="section">
       <h3>✨ اللصق الذكي</h3>
-      <label class="fld">الصق نص إعلانك كاملاً (من واتساب أو غيره) وسيستخرج البيانات ويعبّئ التصميم تلقائياً</label>
+      <label class="fld" for="smartText">الصق نص إعلانك كاملاً (من واتساب أو غيره) وسيستخرج البيانات ويعبّئ التصميم تلقائياً</label>
       <textarea id="smartText" placeholder="فرصه لشراء ✨
 شقه ارضية مخطط الرابية - الهفوف
 المساحه ٢٦٠ متر — دورين دبلكسيه
@@ -443,7 +446,7 @@
       <h3>🏷️ بيانات العقار</h3>
       <div class="row2">
         <div>
-          <label class="fld">الحالة</label>
+          <label class="fld" for="badge">الحالة</label>
           <select id="badge">
             <option>للبيع</option>
             <option>للإيجار</option>
@@ -453,7 +456,7 @@
           </select>
         </div>
         <div>
-          <label class="fld">نوع العقار</label>
+          <label class="fld" for="ptype">نوع العقار</label>
           <select id="ptype">
             <option>فيلا</option>
             <option>شقة</option>
@@ -468,17 +471,17 @@
           </select>
         </div>
       </div>
-      <label class="fld">عنوان الإعلان</label>
+      <label class="fld" for="title">عنوان الإعلان</label>
       <input type="text" id="title" value="فيلا فاخرة بتشطيب راقي" maxlength="40">
-      <label class="fld">الموقع / الحي</label>
+      <label class="fld" for="loc">الموقع / الحي</label>
       <input type="text" id="loc" value="الرياض — حي النرجس" maxlength="40">
       <div class="row2">
         <div>
-          <label class="fld">السعر (اتركه فارغاً = عند الطلب)</label>
+          <label class="fld" for="price">السعر (اتركه فارغاً = عند الطلب)</label>
           <input type="text" id="price" value="2500000" inputmode="numeric">
         </div>
         <div>
-          <label class="fld">العملة</label>
+          <label class="fld" for="currency">العملة</label>
           <select id="currency">
             <option>ريال</option>
             <option>درهم</option>
@@ -488,7 +491,7 @@
           </select>
         </div>
       </div>
-      <label class="fld">معلومات إضافية (اختياري)</label>
+      <label class="fld" for="info">معلومات إضافية (اختياري)</label>
       <input type="text" id="info" placeholder="مثال: على شارعين، رقم الرخصة 7100000000" maxlength="50">
       <div id="infoList"></div>
       <button class="btn btn-ghost btn-sm" id="btnAddInfo" style="width:100%;margin-top:8px">➕ إضافة معلومة أخرى</button>
@@ -497,11 +500,11 @@
     <div class="section">
       <h3>🛏️ المواصفات</h3>
       <div class="row3">
-        <div><label class="fld">غرف النوم</label><input type="text" id="beds" value="6" inputmode="numeric"></div>
-        <div><label class="fld">دورات المياه</label><input type="text" id="baths" value="4" inputmode="numeric"></div>
-        <div><label class="fld">المساحة م²</label><input type="text" id="area" value="450" inputmode="numeric"></div>
+        <div><label class="fld" for="beds">غرف النوم</label><input type="text" id="beds" value="6" inputmode="numeric"></div>
+        <div><label class="fld" for="baths">دورات المياه</label><input type="text" id="baths" value="4" inputmode="numeric"></div>
+        <div><label class="fld" for="area">المساحة م²</label><input type="text" id="area" value="450" inputmode="numeric"></div>
       </div>
-      <label class="fld">مواصفات إضافية (اختياري)</label>
+      <label class="fld" for="extra1">مواصفات إضافية (اختياري)</label>
       <input type="text" id="extra1" placeholder="مثال: مسبح خاص، مصعد، ملحق خارجي" maxlength="25">
       <div id="specList"></div>
       <button class="btn btn-ghost btn-sm" id="btnAddSpec" style="width:100%;margin-top:8px">➕ إضافة مواصفة أخرى</button>
@@ -509,9 +512,9 @@
 
     <div class="section">
       <h3>👤 بيانات الوسيط</h3>
-      <label class="fld">الاسم / المكتب العقاري</label>
+      <label class="fld" for="agent">الاسم / المكتب العقاري</label>
       <input type="text" id="agent" value="مكتب النخبة العقاري" maxlength="35">
-      <label class="fld">رقم الجوال</label>
+      <label class="fld" for="phone">رقم الجوال</label>
       <input type="tel" id="phone" value="0501234567" maxlength="20">
       <label class="fld">الشعار (اختياري)</label>
       <button class="btn btn-ghost" style="width:100%" id="btnLogo">⬆ رفع الشعار</button>
@@ -527,7 +530,7 @@
         <div class="color-dot" style="background:#e74c3c" data-c="#e74c3c"></div>
         <div class="color-dot" style="background:#8e44ad" data-c="#8e44ad"></div>
         <div class="color-dot" style="background:#16324f" data-c="#16324f"></div>
-        <input type="color" id="customColor" value="#c9a227" title="لون مخصص">
+        <input type="color" id="customColor" value="#c9a227" title="لون مخصص" aria-label="لون مخصص">
       </div>
     </div>
   </aside>
@@ -547,9 +550,9 @@
       <button class="btn btn-primary" id="tabLogin">دخول</button>
       <button class="btn btn-ghost" id="tabSignup">حساب جديد</button>
     </div>
-    <label class="fld" id="authEmailLabel">البريد الإلكتروني</label>
+    <label class="fld" for="authEmail" id="authEmailLabel">البريد الإلكتروني</label>
     <input type="text" id="authEmail" placeholder="you@email.com" dir="ltr" autocomplete="email">
-    <label class="fld">كلمة المرور</label>
+    <label class="fld" for="authPass">كلمة المرور</label>
     <input type="password" id="authPass" placeholder="6 أحرف على الأقل" dir="ltr" autocomplete="current-password">
     <button id="btnForgot" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px;text-decoration:underline;padding:0">نسيت كلمة المرور؟</button>
     <button class="btn btn-primary" style="width:100%;margin-top:12px" id="btnAuthGo">دخول</button>
@@ -1883,6 +1886,11 @@ function download(type){
     $('planBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
+  /* تُسجَّل المحاولة هنا — بعد اجتياز البوابات وقبل إنتاج الملف.
+     الفارق بين عدد هذه الأحداث وعدد صفوف جدول downloads هو بالضبط
+     عدد المرات التي ضغط فيها عميل ولم تصله صورة. غياب هذا القياس هو
+     ما جعل زر تحميل مكسور يمرّ شهراً وهو يُقرأ كعزوف عن المنتج. */
+  track('download');
   render();
   const title = ($('title').value.trim() || 'اعلان-عقاري').replace(/\s+/g, '-');
   const name  = title + (type === 'jpg' ? '.jpg' : '.png');
