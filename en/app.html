@@ -1990,12 +1990,11 @@ const IN_APP_BROWSER = /Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|Twitter|Pinte
 function deliverImage(blob, name){
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement('a');
-  a.href = url; a.download = name; a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){ if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+  /* لا يُنقر وسم التنزيل على الجوال إطلاقاً.
 
+     في متصفح إنستقرام لا يُنزّل النقر الملف بل **ينتقل إلى رابط blob:**،
+     فتغطي تلك الصفحة نافذة الحفظ ولا يراها المستخدم إلا إن رجع للخلف.
+     رصده المالك بالتجربة. النقر يبقى على الكمبيوتر حيث يعمل كما يجب. */
   let canShare = false;
   let file = null;
   try {
@@ -2005,6 +2004,11 @@ function deliverImage(blob, name){
 
   /* على الكمبيوتر يكفي سطر صغير — لا نُغرق الشاشة بنافذة بلا داعٍ. */
   if (!IN_APP_BROWSER && !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
     $('cloudMsg').innerHTML = '✅ Saved to your downloads. Not there? '
       + '<a href="' + url + '" download="' + name + '" '
       + 'style="color:var(--accent);font-weight:700">download again</a>';
